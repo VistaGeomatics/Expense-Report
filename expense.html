@@ -60,6 +60,7 @@
     .geomatics-regular{ font-weight:400; }
     .header-left p{ margin:0; font-size:0.96rem; opacity:0.92; }
     .header-logo{ height:90px; width:auto; filter:drop-shadow(0 6px 16px rgba(0,0,0,0.35)); }
+
     form{
       position:relative; z-index:2;
       padding:24px 28px 18px;
@@ -86,13 +87,15 @@
     .section-subtext{ font-size:0.82rem; color:var(--text-muted); margin:0 0 10px 0; }
     .grid-2{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; }
     label{ font-size:0.86rem; font-weight:600; display:block; margin-bottom:4px; }
+
     input[type="text"], input[type="date"], select, textarea{
       width:100%; min-width:0; padding:10px 10px; font-size:0.94rem;
       border:1px solid var(--border-soft); border-radius:9px; background:#f9fbff;
       font-family:inherit; line-height:1.15;
     }
     textarea{
-      resize:none; min-height:44px; line-height:1.25; white-space:pre-wrap; word-break:break-word; overflow:hidden;
+      resize:none; min-height:44px; line-height:1.25;
+      white-space:pre-wrap; word-break:break-word; overflow:hidden;
     }
     input:focus, select:focus, textarea:focus{
       outline:none; border-color:var(--vista-blue-light); background:#fff;
@@ -127,7 +130,8 @@
       border-radius:10px; overflow:hidden; table-layout:fixed; min-width:1120px;
     }
     th, td{
-      border:1px solid #d7e2f1; padding:8px 10px; vertical-align:top; word-break:break-word; overflow:visible;
+      border:1px solid #d7e2f1; padding:8px 10px; vertical-align:top;
+      word-break:break-word; overflow:visible;
     }
     th{
       background:linear-gradient(90deg, #e6f1fb, #dde9f7);
@@ -157,7 +161,10 @@
       border:1px solid var(--border-soft); border-radius:12px; background:#fff; padding:12px;
       box-shadow:0 8px 18px rgba(5,41,66,0.06);
     }
-    .totals-box .label{ font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin-bottom:6px; font-weight:700; }
+    .totals-box .label{
+      font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em;
+      color:var(--text-muted); margin-bottom:6px; font-weight:700;
+    }
     .totals-box .value{ font-size:1.15rem; font-weight:800; color:var(--vista-blue-dark); }
 
     button{
@@ -317,7 +324,7 @@
           </div>
 
           <div class="section-subtext" style="margin-top:10px;">
-            Submit opens an email draft to <strong>timesheets@vistageomatics.com</strong>. Attach the PDF you just exported.
+            Submit exports your PDF, then opens an email draft to <strong>timesheets@vistageomatics.com</strong>. Attach the PDF manually and send.
           </div>
 
           <div class="status" id="statusBox"></div>
@@ -520,18 +527,16 @@
     function cloneForPdf(){
       const source = document.getElementById("reportArea").cloneNode(true);
 
-      // Replace controls with wrapped blocks so nothing clips
+      // Replace inputs/selects/textareas with blocks so nothing clips in PDF
       source.querySelectorAll("input, select, textarea").forEach(el => {
         const block = document.createElement("div");
         block.className = "print-block";
-
         if (el.tagName === "SELECT") {
           const opt = el.options[el.selectedIndex];
           block.textContent = opt ? opt.textContent : "";
         } else {
           block.textContent = el.value || "";
         }
-
         if (el.tagName === "TEXTAREA") block.style.minHeight = "70px";
         el.replaceWith(block);
       });
@@ -559,10 +564,12 @@
 
     async function exportReportPdfBlobLegalLandscape(){
       if (typeof window.html2pdf === "undefined") throw new Error("html2pdf not loaded");
+
       exportSandbox.innerHTML = "";
       const clone = cloneForPdf();
       exportSandbox.appendChild(clone);
 
+      // avoid blank exports
       await waitForImages(exportSandbox);
       await new Promise(requestAnimationFrame);
       await new Promise(requestAnimationFrame);
@@ -579,16 +586,20 @@
       const worker = window.html2pdf().set(opt).from(clone).toPdf();
       const pdf = await worker.get("pdf");
       const blob = pdf.output("blob");
+
       exportSandbox.innerHTML = "";
       return blob;
     }
 
     async function appendReceiptImagesTwoPerPage(pdfDoc, imageFiles){
       const { rgb } = window.PDFLib;
-      const pageW = 8.5 * 72;
+
+      const pageW = 8.5 * 72;   // Legal portrait
       const pageH = 14 * 72;
+
       const margin = 36;
       const gutter = 18;
+
       const slotW = pageW - margin * 2;
       const slotH = (pageH - margin * 2 - gutter) / 2;
 
@@ -611,14 +622,19 @@
           const drawH = dims.height * scale;
 
           const x = margin + (slotW - drawW) / 2;
+
           const topSlotBottom = margin + slotH + gutter;
           const topY = topSlotBottom + (slotH - drawH) / 2;
           const bottomY = margin + (slotH - drawH) / 2;
           const y = (j === 0) ? topY : bottomY;
 
           page.drawImage(img, { x, y, width: drawW, height: drawH });
+
           page.drawText(file.name || "Receipt", {
-            x: margin, y: Math.max(12, y - 14), size: 10, color: rgb(0.35, 0.35, 0.35)
+            x: margin,
+            y: Math.max(12, y - 14),
+            size: 10,
+            color: rgb(0.35, 0.35, 0.35)
           });
         }
       }
@@ -658,6 +674,7 @@
       try{
         setStatus("Building PDF (Legal report + receipts)…", "");
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
+
         const blob = await buildMergedPdfBlob();
         const outName = sanitizeFilename(filenameEl.value) + ".pdf";
 
@@ -671,8 +688,10 @@
         URL.revokeObjectURL(url);
 
         setStatus("PDF exported.", "ok");
+        return outName;
       } catch(e){
         setStatus("Export failed, " + String(e), "bad");
+        throw e;
       }
     }
 
@@ -685,11 +704,10 @@
     async function submitSelfContained(){
       clearStatus();
       try{
-        setStatus("Preparing submission… exporting PDF first.", "");
+        setStatus("Exporting PDF, then opening email draft…", "");
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
 
-        // Export first (download), then open email draft
-        await exportPdfToDownload();
+        const outName = await exportPdfToDownload();
 
         const subject = `Expense Report Submission, ${employeeNameEl.value || "Employee"}, ${reportDateEl.value || ""}`;
         const body =
@@ -699,6 +717,7 @@ Please find my Expense Report attached.
 
 Employee: ${employeeNameEl.value || ""}
 Report Date: ${reportDateEl.value || ""}
+File Name: ${outName}
 Form Version: ${VERSION}
 
 Thanks,`;
@@ -731,13 +750,12 @@ Thanks,`;
       if (!reportDateEl.value) reportDateEl.value = today;
       filenameEl.value = buildDefaultFilename();
 
-      // library check
       setTimeout(() => {
         const issues = [];
-        if (typeof window.html2pdf === "undefined") issues.push("Missing html2pdf.bundle.min.js (commit it to repo)");
-        if (!window.PDFLib || !window.PDFLib.PDFDocument) issues.push("Missing pdf-lib.min.js (commit it to repo)");
+        if (typeof window.html2pdf === "undefined") issues.push("Missing html2pdf.bundle.min.js (commit it to repo).");
+        if (!window.PDFLib || !window.PDFLib.PDFDocument) issues.push("Missing pdf-lib.min.js (commit it to repo).");
         if (issues.length) setStatus(issues.join("\n"), "bad");
-      }, 300);
+      }, 400);
     })();
   </script>
 </body>
