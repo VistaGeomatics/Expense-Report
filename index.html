@@ -6,7 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Export engine -->
   <script defer src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+  <!-- PDF merge (report + receipts) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
   <style>
     :root{
@@ -63,15 +67,6 @@
       background:linear-gradient(120deg, var(--vista-blue-light) 0%, var(--vista-blue) 40%, var(--vista-blue-dark) 100%);
       color:#fff;
       overflow:hidden;
-    }
-
-    .header-bar::after{
-      content:"";
-      position:absolute;
-      inset:-40%;
-      background-image:linear-gradient(135deg, rgba(255,255,255,0.07) 0, transparent 40%);
-      opacity:0.45;
-      pointer-events:none;
     }
 
     .header-left{ position:relative; z-index:1; display:flex; flex-direction:column; gap:4px; }
@@ -136,15 +131,6 @@
       box-shadow:0 0 0 1px rgba(22,95,125,0.12);
     }
 
-    .section-title::before{
-      content:"";
-      display:inline-block;
-      width:8px; height:8px;
-      border-radius:999px;
-      background:radial-gradient(circle, #ffffff 0, var(--vista-blue-light) 50%, var(--vista-blue-dark) 100%);
-      box-shadow:0 0 0 4px rgba(22,95,125,0.25);
-    }
-
     .section-subtext{
       font-size:0.82rem;
       color:var(--text-muted);
@@ -194,20 +180,13 @@
       transform:translateY(-1px);
     }
 
-    /* Numeric fields as text (no spinner arrows) */
-    .money-input, .km-input{
-      text-align:right;
-      font-variant-numeric:tabular-nums;
-    }
-
-    /* Department cards */
+    /* Dept cards */
     .dept-cards{
       display:grid;
       grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
       gap:10px;
       margin-top:10px;
     }
-
     .dept-card{
       border:1px solid var(--border-soft);
       border-radius:12px;
@@ -215,7 +194,6 @@
       overflow:hidden;
       box-shadow:0 8px 18px rgba(5,41,66,0.06);
     }
-
     .dept-card .top{
       padding:10px 12px;
       background:linear-gradient(90deg, rgba(22,95,125,0.12), rgba(11,48,69,0.06));
@@ -226,7 +204,6 @@
       justify-content:space-between;
       align-items:center;
     }
-
     .dept-card .code{
       display:inline-flex;
       align-items:center;
@@ -240,14 +217,13 @@
       letter-spacing:0.04em;
       box-shadow:0 8px 16px rgba(5,41,66,0.18);
     }
-
     .dept-card .body{
       padding:10px 12px;
       color:var(--text-muted);
       font-size:0.82rem;
     }
 
-    /* TABLE: show everything, no clipping */
+    /* Table */
     .table-wrap{ overflow:auto; }
     table{
       width:100%;
@@ -257,7 +233,7 @@
       border-radius:10px;
       overflow:hidden;
       table-layout:fixed;
-      min-width:1040px;
+      min-width:1120px;
     }
 
     th, td{
@@ -284,17 +260,22 @@
     /* Column widths */
     .col-date{ width:120px; }
     .col-vendor{ width:180px; }
-    .col-desc{ width:380px; }
+    .col-desc{ width:420px; }
     .col-sub{ width:130px; }
     .col-gst{ width:120px; }
     .col-total{ width:130px; }
-    .col-dept{ width:150px; }
-    .col-km{ width:140px; }
+    .col-dept{ width:160px; }
+    .col-km{ width:150px; }
 
-    /* Ensure inputs don't get clipped inside table cells */
     td input, td textarea, td select{
       width:100%;
       min-width:0;
+    }
+
+    /* No spinner arrows: we use text inputs w/ inputmode=decimal */
+    .money-input, .km-input{
+      text-align:right;
+      font-variant-numeric:tabular-nums;
     }
 
     .row-actions{
@@ -312,7 +293,6 @@
       align-items:end;
       margin-top:12px;
     }
-
     .totals-box{
       border:1px solid var(--border-soft);
       border-radius:12px;
@@ -320,7 +300,6 @@
       padding:12px;
       box-shadow:0 8px 18px rgba(5,41,66,0.06);
     }
-
     .totals-box .label{
       font-size:0.78rem;
       text-transform:uppercase;
@@ -329,7 +308,6 @@
       margin-bottom:6px;
       font-weight:700;
     }
-
     .totals-box .value{
       font-size:1.15rem;
       font-weight:800;
@@ -353,22 +331,15 @@
       color:#fff;
       box-shadow:0 10px 24px rgba(5,41,66,0.45);
     }
-
     .btn-secondary{
       background:#f3f4f6;
       color:var(--text-main);
       border:1px solid #d4d7dd;
     }
-
     .btn-ghost{
       background:#ffffff;
       color:var(--vista-blue-dark);
       border:1px solid var(--border-soft);
-    }
-
-    .btn-primary:hover, .btn-secondary:hover, .btn-ghost:hover{
-      transform:translateY(-1px);
-      box-shadow:0 12px 26px rgba(5,41,66,0.18);
     }
 
     .status{
@@ -381,14 +352,13 @@
       box-shadow:0 8px 18px rgba(5,41,66,0.06);
       display:none;
       margin-top:10px;
-      max-width:780px;
+      max-width:860px;
     }
     .status.ok{ color:var(--ok); }
     .status.bad{ color:var(--danger); }
 
     .no-print{ }
 
-    /* Export blocks (wrap everything, never cut off) */
     .print-block{
       padding:10px 10px;
       border:1px solid #d6e2f0;
@@ -406,13 +376,6 @@
       form{ padding:18px 16px 20px; }
       .header-bar{ flex-direction:column; align-items:flex-start; }
       .header-logo{ align-self:flex-end; height:56px; }
-    }
-
-    @media print{
-      body{ background:#fff; padding:0; }
-      .container{ box-shadow:none; border-radius:0; }
-      .container::before{ display:none; }
-      .no-print{ display:none !important; }
     }
   </style>
 </head>
@@ -466,7 +429,7 @@
 
         <div class="section">
           <div class="section-title">Expense Entries</div>
-          <p class="section-subtext">Starts with 3 rows, add more rows as needed. Descriptions wrap and export cleanly.</p>
+          <p class="section-subtext">Starts with 3 rows, add more rows as needed. Export is Legal, Landscape so the right side is not clipped.</p>
 
           <div class="table-wrap">
             <table id="expenseTable">
@@ -494,19 +457,35 @@
           <div class="totals-bar">
             <div class="totals-box">
               <div class="label">Subtotal Total</div>
-              <div class="value" id="subtotalSum">$0.00</div>
+              <div class="value" id="subtotalSum">CA$0.00</div>
             </div>
             <div class="totals-box">
               <div class="label">GST Total</div>
-              <div class="value" id="gstSum">$0.00</div>
+              <div class="value" id="gstSum">CA$0.00</div>
             </div>
             <div class="totals-box">
               <div class="label">Grand Total</div>
-              <div class="value" id="grandSum">$0.00</div>
+              <div class="value" id="grandSum">CA$0.00</div>
             </div>
             <div class="totals-box">
               <div class="label">Personal KM Total</div>
               <div class="value" id="kmSum">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Receipts</div>
+          <p class="section-subtext">Receipt images will be appended to the PDF as additional pages, 2 per page. A receipts PDF will be appended after those pages.</p>
+
+          <div class="grid-2">
+            <div>
+              <label for="receiptPhotos">Receipt photos (take photo or upload)</label>
+              <input type="file" id="receiptPhotos" accept="image/*" multiple capture="environment" />
+            </div>
+            <div>
+              <label for="receiptPdf">Receipts PDF (optional)</label>
+              <input type="file" id="receiptPdf" accept="application/pdf" />
             </div>
           </div>
         </div>
@@ -521,7 +500,6 @@
             </div>
             <div style="display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap;">
               <button type="button" class="btn-primary" id="exportBtn">Export PDF</button>
-              <button type="button" class="btn-secondary" id="printBtn">Print</button>
               <button type="button" class="btn-secondary" id="clearBtn">Clear</button>
             </div>
           </div>
@@ -533,6 +511,8 @@
   </div>
 
   <script>
+    const { PDFDocument, rgb } = window.PDFLib || {};
+
     const tbody = document.getElementById("expenseTbody");
     const addRowBtn = document.getElementById("addRowBtn");
     const removeLastRowBtn = document.getElementById("removeLastRowBtn");
@@ -547,11 +527,12 @@
     const kmSumEl = document.getElementById("kmSum");
 
     const exportBtn = document.getElementById("exportBtn");
-    const printBtn = document.getElementById("printBtn");
     const clearBtn = document.getElementById("clearBtn");
 
-    const statusBox = document.getElementById("statusBox");
+    const receiptPhotosInput = document.getElementById("receiptPhotos");
+    const receiptPdfInput = document.getElementById("receiptPdf");
 
+    const statusBox = document.getElementById("statusBox");
     const DEFAULT_ROWS = 3;
 
     function setStatus(msg, kind){
@@ -605,20 +586,19 @@
       return sel;
     }
 
-    // Text-based numeric input: removes spinner arrows and keeps mobile numeric keyboard
-    function moneyInput(placeholder){
+    function moneyInput(){
       const input = document.createElement("input");
-      input.type = "text";
-      input.inputMode = "decimal";
+      input.type = "text";         // no spinner arrows
+      input.inputMode = "decimal"; // numeric keyboard on mobile
       input.autocomplete = "off";
-      input.placeholder = placeholder || "";
+      input.placeholder = "0.00";
       input.className = "money-input";
       return input;
     }
 
     function kmInput(){
       const input = document.createElement("input");
-      input.type = "text";
+      input.type = "text";         // no spinner arrows
       input.inputMode = "decimal";
       input.autocomplete = "off";
       input.placeholder = "";
@@ -647,21 +627,17 @@
       tdDesc.appendChild(desc);
 
       const tdSub = document.createElement("td"); tdSub.className = "cell-tight";
-      const sub = moneyInput("0.00");
+      const sub = moneyInput();
       tdSub.appendChild(sub);
 
       const tdGst = document.createElement("td"); tdGst.className = "cell-tight";
-      const gst = moneyInput("0.00");
+      const gst = moneyInput();
       tdGst.appendChild(gst);
 
       const tdTotal = document.createElement("td"); tdTotal.className = "cell-tight";
-      const total = document.createElement("input");
-      total.type = "text";
-      total.inputMode = "decimal";
-      total.placeholder = "0.00";
+      const total = moneyInput();
       total.readOnly = true;
       total.tabIndex = -1;
-      total.className = "money-input";
       tdTotal.appendChild(total);
 
       const tdDept = document.createElement("td"); tdDept.className = "cell-tight";
@@ -688,21 +664,9 @@
         recalcTotals();
       }
 
-      // allow commas / $ but keep calculation accurate
-      function normalizeMoney(el){
-        const v = el.value;
-        if (!v) return;
-        const n = parseMoney(v);
-        // don’t force formatting while typing, only on blur
-        el.value = (v.trim() === "") ? "" : String(n.toFixed(2));
-      }
-
       sub.addEventListener("input", recalcRow);
       gst.addEventListener("input", recalcRow);
       km.addEventListener("input", recalcTotals);
-
-      sub.addEventListener("blur", () => { normalizeMoney(sub); recalcRow(); });
-      gst.addEventListener("blur", () => { normalizeMoney(gst); recalcRow(); });
 
       tbody.appendChild(tr);
       autoGrow(desc);
@@ -730,10 +694,7 @@
         const t = parseMoney(tot?.value);
         const k = parseMoney(km?.value);
 
-        subSum += s;
-        gstSum += g;
-        grand  += t;
-        kmSum  += k;
+        subSum += s; gstSum += g; grand += t; kmSum += k;
       });
 
       subtotalSumEl.textContent = money(subSum);
@@ -751,7 +712,7 @@
       const source = document.getElementById("reportArea").cloneNode(true);
       source.querySelectorAll(".no-print").forEach(el => el.remove());
 
-      // Convert all inputs/selects/textareas to wrapped blocks so nothing is clipped
+      // Convert inputs/selects/textarea to wrapped blocks so nothing gets clipped in the canvas render
       source.querySelectorAll("input, select, textarea").forEach(el => {
         const block = document.createElement("div");
         block.className = "print-block";
@@ -767,7 +728,7 @@
         el.replaceWith(block);
       });
 
-      // Prevent table rows being split awkwardly
+      // Encourage whole rows (helps avoid ugly splits)
       source.querySelectorAll("tr").forEach(tr => {
         tr.style.pageBreakInside = "avoid";
         tr.style.breakInside = "avoid";
@@ -776,11 +737,111 @@
       return source;
     }
 
-    async function exportPdf(){
+    async function blobToBytes(blob){
+      const buf = await blob.arrayBuffer();
+      return new Uint8Array(buf);
+    }
+
+    async function exportReportPdfBlobLegalLandscape(){
+      // Legal Landscape fixes right-side clipping
+      const source = cloneForPdf();
+
+      const opt = {
+        margin:      [8, 8, 8, 8],
+        filename:    "temp.pdf",
+        image:       { type: "jpeg", quality: 0.96 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 1400 },
+        jsPDF:       { unit: "in", format: "legal", orientation: "landscape" }
+      };
+
+      const worker = window.html2pdf().set(opt).from(source).toPdf();
+      const pdf = await worker.get("pdf");
+      return pdf.output("blob");
+    }
+
+    async function appendReceiptImagesTwoPerPage(pdfDoc, imageFiles){
+      // Legal Portrait page size in points (8.5x14 in)
+      const pageW = 8.5 * 72;
+      const pageH = 14 * 72;
+
+      const margin = 36; // 0.5"
+      const gutter = 18; // between top & bottom receipts
+
+      const slotW = pageW - margin * 2;
+      const slotH = (pageH - margin * 2 - gutter) / 2;
+
+      for (let i = 0; i < imageFiles.length; i += 2) {
+        const page = pdfDoc.addPage([pageW, pageH]);
+
+        for (let j = 0; j < 2; j++) {
+          const file = imageFiles[i + j];
+          if (!file) continue;
+
+          const bytes = await blobToBytes(file);
+          let img;
+          const type = (file.type || "").toLowerCase();
+
+          if (type.includes("png")) img = await pdfDoc.embedPng(bytes);
+          else img = await pdfDoc.embedJpg(bytes); // default to jpg
+
+          const dims = img.scale(1);
+
+          const scale = Math.min(slotW / dims.width, slotH / dims.height);
+          const drawW = dims.width * scale;
+          const drawH = dims.height * scale;
+
+          const x = margin + (slotW - drawW) / 2;
+          const yTop = pageH - margin - drawH;
+          const y = j === 0 ? yTop : (margin + (slotH - drawH) / 2);
+
+          const yFinal = j === 0 ? y : (margin + (slotH - drawH) / 2);
+
+          // For bottom slot, y starts at margin
+          const baseY = j === 0
+            ? (pageH - margin - drawH)
+            : (margin + (slotH - drawH) / 2);
+
+          // For top slot, shift it into the top half region
+          const topHalfBottomY = margin + slotH + gutter;
+          const topY = topHalfBottomY + (slotH - drawH) / 2;
+
+          page.drawImage(img, {
+            x,
+            y: j === 0 ? topY : baseY,
+            width: drawW,
+            height: drawH
+          });
+
+          // optional caption
+          page.drawText(file.name || "Receipt", {
+            x: margin,
+            y: (j === 0 ? topY : baseY) - 14,
+            size: 10,
+            color: rgb(0.35, 0.35, 0.35)
+          });
+        }
+      }
+    }
+
+    async function appendReceiptPdf(pdfDoc, receiptPdfFile){
+      if (!receiptPdfFile) return;
+
+      const receiptBytes = await blobToBytes(receiptPdfFile);
+      const receiptDoc = await PDFDocument.load(receiptBytes);
+
+      const pages = await pdfDoc.copyPages(receiptDoc, receiptDoc.getPageIndices());
+      pages.forEach(p => pdfDoc.addPage(p));
+    }
+
+    async function exportMergedPdf(){
       clearStatus();
 
       if (typeof window.html2pdf === "undefined") {
         setStatus("Export failed, html2pdf did not load. Allow cdn.jsdelivr.net or host html2pdf.bundle.min.js locally.", "bad");
+        return;
+      }
+      if (!window.PDFLib || !PDFDocument) {
+        setStatus("Export failed, pdf-lib did not load. Allow cdn.jsdelivr.net or host pdf-lib locally.", "bad");
         return;
       }
 
@@ -791,23 +852,34 @@
       const outName = sanitizeFilename(filenameEl.value) + ".pdf";
 
       try{
-        setStatus("Exporting PDF…", "");
-        const source = cloneForPdf();
+        setStatus("Rendering report (Legal, Landscape)…", "");
 
-        const opt = {
-          margin:      [10, 10, 10, 10],
-          filename:    outName,
-          image:       { type: "jpeg", quality: 0.95 },
-          html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 1200 },
-          jsPDF:       { unit: "mm", format: "letter", orientation: "portrait" },
-          pagebreak:   { mode: ["css", "legacy"] }
-        };
+        const reportBlob = await exportReportPdfBlobLegalLandscape();
+        const reportBytes = await blobToBytes(reportBlob);
+        const reportDoc = await PDFDocument.load(reportBytes);
 
-        const worker = window.html2pdf().set(opt).from(source).toPdf();
-        const pdf = await worker.get("pdf");
-        const blob = pdf.output("blob");
+        const finalDoc = await PDFDocument.create();
+        const reportPages = await finalDoc.copyPages(reportDoc, reportDoc.getPageIndices());
+        reportPages.forEach(p => finalDoc.addPage(p));
 
-        const url = URL.createObjectURL(blob);
+        const images = Array.from(receiptPhotosInput.files || []);
+        const receiptsPdf = receiptPdfInput.files && receiptPdfInput.files[0] ? receiptPdfInput.files[0] : null;
+
+        if (images.length){
+          setStatus("Appending receipt images (2 per page)…", "");
+          await appendReceiptImagesTwoPerPage(finalDoc, images);
+        }
+
+        if (receiptsPdf){
+          setStatus("Appending receipts PDF…", "");
+          await appendReceiptPdf(finalDoc, receiptsPdf);
+        }
+
+        setStatus("Building final PDF…", "");
+        const finalBytes = await finalDoc.save();
+        const finalBlob = new Blob([finalBytes], { type: "application/pdf" });
+
+        const url = URL.createObjectURL(finalBlob);
         const a = document.createElement("a");
         a.href = url;
         a.download = outName;
@@ -816,16 +888,15 @@
         a.remove();
         URL.revokeObjectURL(url);
 
-        setStatus("PDF exported.", "ok");
-      } catch(err){
+        setStatus("PDF exported (Legal report + receipts appended).", "ok");
+      } catch (err){
         setStatus("Export failed, " + String(err), "bad");
       }
     }
 
     addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
-    exportBtn.addEventListener("click", exportPdf);
-    printBtn.addEventListener("click", () => window.print());
+    exportBtn.addEventListener("click", exportMergedPdf);
 
     clearBtn.addEventListener("click", () => {
       clearStatus();
