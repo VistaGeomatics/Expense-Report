@@ -7,11 +7,6 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
 
-  <!-- Export engine -->
-  <script defer src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
-  <!-- PDF merge (report + receipts) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-
   <style>
     :root{
       --vista-blue:#165f7d;
@@ -69,6 +64,15 @@
       overflow:hidden;
     }
 
+    .header-bar::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background-image:linear-gradient(135deg, rgba(255,255,255,0.07) 0, transparent 40%);
+      opacity:0.45;
+      pointer-events:none;
+    }
+
     .header-left{ position:relative; z-index:1; display:flex; flex-direction:column; gap:4px; }
     .header-left h1{
       margin:0;
@@ -94,7 +98,7 @@
     form{
       position:relative;
       z-index:2;
-      padding:24px 28px 26px;
+      padding:24px 28px 18px;
       background:radial-gradient(circle at top left, rgba(226,240,246,0.55), transparent 55%) #fff;
     }
 
@@ -129,6 +133,15 @@
       border-radius:999px;
       background:linear-gradient(90deg, rgba(22,95,125,0.09), rgba(11,48,69,0.05));
       box-shadow:0 0 0 1px rgba(22,95,125,0.12);
+    }
+
+    .section-title::before{
+      content:"";
+      display:inline-block;
+      width:8px; height:8px;
+      border-radius:999px;
+      background:radial-gradient(circle, #ffffff 0, var(--vista-blue-light) 50%, var(--vista-blue-dark) 100%);
+      box-shadow:0 0 0 4px rgba(22,95,125,0.25);
     }
 
     .section-subtext{
@@ -272,7 +285,7 @@
       min-width:0;
     }
 
-    /* No spinner arrows: we use text inputs w/ inputmode=decimal */
+    /* No spinner arrows */
     .money-input, .km-input{
       text-align:right;
       font-variant-numeric:tabular-nums;
@@ -341,6 +354,10 @@
       color:var(--vista-blue-dark);
       border:1px solid var(--border-soft);
     }
+    .btn-primary:hover, .btn-secondary:hover, .btn-ghost:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 26px rgba(5,41,66,0.18);
+    }
 
     .status{
       font-size:0.9rem;
@@ -352,7 +369,7 @@
       box-shadow:0 8px 18px rgba(5,41,66,0.06);
       display:none;
       margin-top:10px;
-      max-width:860px;
+      max-width:920px;
     }
     .status.ok{ color:var(--ok); }
     .status.bad{ color:var(--danger); }
@@ -371,9 +388,18 @@
       line-height:1.25;
     }
 
+    .footer-version{
+      margin-top:10px;
+      padding:0 4px 6px;
+      text-align:right;
+      font-size:0.78rem;
+      color:var(--text-muted);
+      user-select:none;
+    }
+
     @media (max-width: 720px){
       body{ padding:12px; }
-      form{ padding:18px 16px 20px; }
+      form{ padding:18px 16px 12px; }
       .header-bar{ flex-direction:column; align-items:flex-start; }
       .header-logo{ align-self:flex-end; height:56px; }
     }
@@ -476,15 +502,15 @@
 
         <div class="section">
           <div class="section-title">Receipts</div>
-          <p class="section-subtext">Receipt images will be appended to the PDF as additional pages, 2 per page. A receipts PDF will be appended after those pages.</p>
+          <p class="section-subtext">Receipt images are appended as additional pages, 2 per page. A receipts PDF, if provided, is appended after the images.</p>
 
           <div class="grid-2">
             <div>
-              <label for="receiptPhotos">Receipt photos (take photo or upload)</label>
+              <label for="receiptPhotos">Receipt photos, take photo or upload</label>
               <input type="file" id="receiptPhotos" accept="image/*" multiple capture="environment" />
             </div>
             <div>
-              <label for="receiptPdf">Receipts PDF (optional)</label>
+              <label for="receiptPdf">Receipts PDF, optional</label>
               <input type="file" id="receiptPdf" accept="application/pdf" />
             </div>
           </div>
@@ -499,19 +525,96 @@
               <input type="text" id="filename" placeholder="Expense Report - Name - YYYY-MM-DD" />
             </div>
             <div style="display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap;">
-              <button type="button" class="btn-primary" id="exportBtn">Export PDF</button>
+              <button type="button" class="btn-primary" id="exportBtn" disabled>Export PDF</button>
               <button type="button" class="btn-secondary" id="clearBtn">Clear</button>
             </div>
           </div>
 
           <div class="status" id="statusBox"></div>
         </div>
+
+        <div class="footer-version" id="versionFooter">Version 3.0</div>
       </form>
     </div>
   </div>
 
   <script>
-    const { PDFDocument, rgb } = window.PDFLib || {};
+    /******************************************************************
+     * REQUIRED LOCAL FILES (place in same folder as this HTML):
+     *  - html2pdf.bundle.min.js
+     *  - pdf-lib.min.js
+     *
+     * This page loads local copies first, if missing, it tries unpkg.
+     ******************************************************************/
+    const VERSION = "3.0";
+
+    const exportBtn = document.getElementById("exportBtn");
+    const statusBox = document.getElementById("statusBox");
+    const versionFooter = document.getElementById("versionFooter");
+    versionFooter.textContent = "Version " + VERSION;
+
+    function setStatus(msg, kind){
+      statusBox.style.display = "block";
+      statusBox.classList.remove("ok", "bad");
+      if (kind) statusBox.classList.add(kind);
+      statusBox.textContent = msg;
+    }
+    function clearStatus(){
+      statusBox.style.display = "none";
+      statusBox.textContent = "";
+      statusBox.classList.remove("ok", "bad");
+    }
+
+    function loadScript(src){
+      return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src;
+        s.defer = true;
+        s.onload = () => resolve(true);
+        s.onerror = () => reject(new Error("Failed to load " + src));
+        document.head.appendChild(s);
+      });
+    }
+
+    async function ensureLibraries(){
+      // html2pdf
+      if (typeof window.html2pdf === "undefined") {
+        try { await loadScript("html2pdf.bundle.min.js"); }
+        catch {
+          // fallback
+          await loadScript("https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js");
+        }
+      }
+
+      // pdf-lib
+      if (!window.PDFLib || !window.PDFLib.PDFDocument) {
+        try { await loadScript("pdf-lib.min.js"); }
+        catch {
+          // fallback
+          await loadScript("https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js");
+        }
+      }
+
+      if (typeof window.html2pdf === "undefined") throw new Error("html2pdf not available");
+      if (!window.PDFLib || !window.PDFLib.PDFDocument) throw new Error("pdf-lib not available");
+    }
+
+    (async function initLibraries(){
+      try{
+        setStatus("Loading export libraries…", "");
+        await ensureLibraries();
+        exportBtn.disabled = false;
+        setStatus("Ready to export.", "ok");
+        setTimeout(() => clearStatus(), 1200);
+      } catch (e){
+        exportBtn.disabled = true;
+        setStatus("Export libraries could not be loaded. Put html2pdf.bundle.min.js and pdf-lib.min.js beside this HTML.", "bad");
+      }
+    })();
+  </script>
+
+  <script>
+    // App logic (runs regardless, export is enabled only when libs load)
 
     const tbody = document.getElementById("expenseTbody");
     const addRowBtn = document.getElementById("addRowBtn");
@@ -526,26 +629,12 @@
     const grandSumEl = document.getElementById("grandSum");
     const kmSumEl = document.getElementById("kmSum");
 
-    const exportBtn = document.getElementById("exportBtn");
     const clearBtn = document.getElementById("clearBtn");
 
     const receiptPhotosInput = document.getElementById("receiptPhotos");
     const receiptPdfInput = document.getElementById("receiptPdf");
 
-    const statusBox = document.getElementById("statusBox");
     const DEFAULT_ROWS = 3;
-
-    function setStatus(msg, kind){
-      statusBox.style.display = "block";
-      statusBox.classList.remove("ok", "bad");
-      if (kind) statusBox.classList.add(kind);
-      statusBox.textContent = msg;
-    }
-    function clearStatus(){
-      statusBox.style.display = "none";
-      statusBox.textContent = "";
-      statusBox.classList.remove("ok", "bad");
-    }
 
     function money(n){
       const num = Number(n || 0);
@@ -588,8 +677,8 @@
 
     function moneyInput(){
       const input = document.createElement("input");
-      input.type = "text";         // no spinner arrows
-      input.inputMode = "decimal"; // numeric keyboard on mobile
+      input.type = "text";
+      input.inputMode = "decimal";
       input.autocomplete = "off";
       input.placeholder = "0.00";
       input.className = "money-input";
@@ -598,7 +687,7 @@
 
     function kmInput(){
       const input = document.createElement("input");
-      input.type = "text";         // no spinner arrows
+      input.type = "text";
       input.inputMode = "decimal";
       input.autocomplete = "off";
       input.placeholder = "";
@@ -712,7 +801,7 @@
       const source = document.getElementById("reportArea").cloneNode(true);
       source.querySelectorAll(".no-print").forEach(el => el.remove());
 
-      // Convert inputs/selects/textarea to wrapped blocks so nothing gets clipped in the canvas render
+      // Convert inputs/selects/textareas to wrapped blocks so nothing clips
       source.querySelectorAll("input, select, textarea").forEach(el => {
         const block = document.createElement("div");
         block.className = "print-block";
@@ -728,7 +817,6 @@
         el.replaceWith(block);
       });
 
-      // Encourage whole rows (helps avoid ugly splits)
       source.querySelectorAll("tr").forEach(tr => {
         tr.style.pageBreakInside = "avoid";
         tr.style.breakInside = "avoid";
@@ -743,7 +831,6 @@
     }
 
     async function exportReportPdfBlobLegalLandscape(){
-      // Legal Landscape fixes right-side clipping
       const source = cloneForPdf();
 
       const opt = {
@@ -760,12 +847,13 @@
     }
 
     async function appendReceiptImagesTwoPerPage(pdfDoc, imageFiles){
-      // Legal Portrait page size in points (8.5x14 in)
+      const { rgb } = window.PDFLib;
+
       const pageW = 8.5 * 72;
       const pageH = 14 * 72;
 
-      const margin = 36; // 0.5"
-      const gutter = 18; // between top & bottom receipts
+      const margin = 36;
+      const gutter = 18;
 
       const slotW = pageW - margin * 2;
       const slotH = (pageH - margin * 2 - gutter) / 2;
@@ -779,43 +867,34 @@
 
           const bytes = await blobToBytes(file);
           let img;
-          const type = (file.type || "").toLowerCase();
 
+          const type = (file.type || "").toLowerCase();
           if (type.includes("png")) img = await pdfDoc.embedPng(bytes);
-          else img = await pdfDoc.embedJpg(bytes); // default to jpg
+          else img = await pdfDoc.embedJpg(bytes);
 
           const dims = img.scale(1);
-
           const scale = Math.min(slotW / dims.width, slotH / dims.height);
           const drawW = dims.width * scale;
           const drawH = dims.height * scale;
 
           const x = margin + (slotW - drawW) / 2;
-          const yTop = pageH - margin - drawH;
-          const y = j === 0 ? yTop : (margin + (slotH - drawH) / 2);
 
-          const yFinal = j === 0 ? y : (margin + (slotH - drawH) / 2);
-
-          // For bottom slot, y starts at margin
-          const baseY = j === 0
-            ? (pageH - margin - drawH)
-            : (margin + (slotH - drawH) / 2);
-
-          // For top slot, shift it into the top half region
+          // top slot base
           const topHalfBottomY = margin + slotH + gutter;
           const topY = topHalfBottomY + (slotH - drawH) / 2;
+          // bottom slot base
+          const bottomY = margin + (slotH - drawH) / 2;
 
           page.drawImage(img, {
             x,
-            y: j === 0 ? topY : baseY,
+            y: j === 0 ? topY : bottomY,
             width: drawW,
             height: drawH
           });
 
-          // optional caption
           page.drawText(file.name || "Receipt", {
             x: margin,
-            y: (j === 0 ? topY : baseY) - 14,
+            y: (j === 0 ? topY : bottomY) - 14,
             size: 10,
             color: rgb(0.35, 0.35, 0.35)
           });
@@ -827,7 +906,7 @@
       if (!receiptPdfFile) return;
 
       const receiptBytes = await blobToBytes(receiptPdfFile);
-      const receiptDoc = await PDFDocument.load(receiptBytes);
+      const receiptDoc = await window.PDFLib.PDFDocument.load(receiptBytes);
 
       const pages = await pdfDoc.copyPages(receiptDoc, receiptDoc.getPageIndices());
       pages.forEach(p => pdfDoc.addPage(p));
@@ -836,29 +915,26 @@
     async function exportMergedPdf(){
       clearStatus();
 
-      if (typeof window.html2pdf === "undefined") {
-        setStatus("Export failed, html2pdf did not load. Allow cdn.jsdelivr.net or host html2pdf.bundle.min.js locally.", "bad");
+      if (typeof window.html2pdf === "undefined"){
+        setStatus("Export failed, html2pdf is not available. Put html2pdf.bundle.min.js beside this HTML.", "bad");
         return;
       }
-      if (!window.PDFLib || !PDFDocument) {
-        setStatus("Export failed, pdf-lib did not load. Allow cdn.jsdelivr.net or host pdf-lib locally.", "bad");
+      if (!window.PDFLib || !window.PDFLib.PDFDocument){
+        setStatus("Export failed, pdf-lib is not available. Put pdf-lib.min.js beside this HTML.", "bad");
         return;
       }
 
-      if (!filenameEl.value.trim()){
-        filenameEl.value = buildDefaultFilename();
-      }
-
+      if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
       const outName = sanitizeFilename(filenameEl.value) + ".pdf";
 
       try{
-        setStatus("Rendering report (Legal, Landscape)…", "");
+        setStatus("Rendering report, Legal, Landscape…", "");
 
         const reportBlob = await exportReportPdfBlobLegalLandscape();
         const reportBytes = await blobToBytes(reportBlob);
-        const reportDoc = await PDFDocument.load(reportBytes);
+        const reportDoc = await window.PDFLib.PDFDocument.load(reportBytes);
 
-        const finalDoc = await PDFDocument.create();
+        const finalDoc = await window.PDFLib.PDFDocument.create();
         const reportPages = await finalDoc.copyPages(reportDoc, reportDoc.getPageIndices());
         reportPages.forEach(p => finalDoc.addPage(p));
 
@@ -866,7 +942,7 @@
         const receiptsPdf = receiptPdfInput.files && receiptPdfInput.files[0] ? receiptPdfInput.files[0] : null;
 
         if (images.length){
-          setStatus("Appending receipt images (2 per page)…", "");
+          setStatus("Appending receipt images, 2 per page…", "");
           await appendReceiptImagesTwoPerPage(finalDoc, images);
         }
 
@@ -888,15 +964,16 @@
         a.remove();
         URL.revokeObjectURL(url);
 
-        setStatus("PDF exported (Legal report + receipts appended).", "ok");
+        setStatus("PDF exported, report plus receipts appended.", "ok");
       } catch (err){
         setStatus("Export failed, " + String(err), "bad");
       }
     }
 
+    // Wire up
     addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
-    exportBtn.addEventListener("click", exportMergedPdf);
+    document.getElementById("exportBtn").addEventListener("click", exportMergedPdf);
 
     clearBtn.addEventListener("click", () => {
       clearStatus();
@@ -907,6 +984,7 @@
       filenameEl.value = buildDefaultFilename();
     });
 
+    // Init
     (function init(){
       initRows();
       const today = new Date().toISOString().slice(0,10);
