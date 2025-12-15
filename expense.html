@@ -7,6 +7,10 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
 
+  <!-- IMPORTANT: Local first (prevents CDN blocks) -->
+  <script defer src="html2pdf.bundle.min.js"></script>
+  <script defer src="pdf-lib.min.js"></script>
+
   <style>
     :root{
       --vista-blue:#165f7d;
@@ -62,15 +66,6 @@
       background:linear-gradient(120deg, var(--vista-blue-light) 0%, var(--vista-blue) 40%, var(--vista-blue-dark) 100%);
       color:#fff;
       overflow:hidden;
-    }
-
-    .header-bar::after{
-      content:"";
-      position:absolute;
-      inset:-40%;
-      background-image:linear-gradient(135deg, rgba(255,255,255,0.07) 0, transparent 40%);
-      opacity:0.45;
-      pointer-events:none;
     }
 
     .header-left{ position:relative; z-index:1; display:flex; flex-direction:column; gap:4px; }
@@ -135,15 +130,6 @@
       box-shadow:0 0 0 1px rgba(22,95,125,0.12);
     }
 
-    .section-title::before{
-      content:"";
-      display:inline-block;
-      width:8px; height:8px;
-      border-radius:999px;
-      background:radial-gradient(circle, #ffffff 0, var(--vista-blue-light) 50%, var(--vista-blue-dark) 100%);
-      box-shadow:0 0 0 4px rgba(22,95,125,0.25);
-    }
-
     .section-subtext{
       font-size:0.82rem;
       color:var(--text-muted);
@@ -193,7 +179,6 @@
       transform:translateY(-1px);
     }
 
-    /* Dept cards */
     .dept-cards{
       display:grid;
       grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
@@ -236,7 +221,6 @@
       font-size:0.82rem;
     }
 
-    /* Table */
     .table-wrap{ overflow:auto; }
     table{
       width:100%;
@@ -270,7 +254,6 @@
     tbody tr:nth-child(even){ background:#f7faff; }
     .cell-tight{ padding:6px 8px; }
 
-    /* Column widths */
     .col-date{ width:120px; }
     .col-vendor{ width:180px; }
     .col-desc{ width:420px; }
@@ -280,12 +263,8 @@
     .col-dept{ width:160px; }
     .col-km{ width:150px; }
 
-    td input, td textarea, td select{
-      width:100%;
-      min-width:0;
-    }
+    td input, td textarea, td select{ width:100%; min-width:0; }
 
-    /* No spinner arrows */
     .money-input, .km-input{
       text-align:right;
       font-variant-numeric:tabular-nums;
@@ -369,13 +348,15 @@
       box-shadow:0 8px 18px rgba(5,41,66,0.06);
       display:none;
       margin-top:10px;
-      max-width:920px;
+      max-width:980px;
+      white-space:pre-wrap;
     }
     .status.ok{ color:var(--ok); }
     .status.bad{ color:var(--danger); }
 
     .no-print{ }
 
+    /* Export text blocks so nothing is clipped */
     .print-block{
       padding:10px 10px;
       border:1px solid #d6e2f0;
@@ -395,6 +376,16 @@
       font-size:0.78rem;
       color:var(--text-muted);
       user-select:none;
+    }
+
+    /* Export sandbox: must be attached to DOM for reliable render */
+    #exportSandbox{
+      position:fixed;
+      left:-10000px;
+      top:0;
+      width:1400px; /* helps ensure table fits render width */
+      background:#fff;
+      z-index:-1;
     }
 
     @media (max-width: 720px){
@@ -502,7 +493,7 @@
 
         <div class="section">
           <div class="section-title">Receipts</div>
-          <p class="section-subtext">Receipt images are appended as additional pages, 2 per page. A receipts PDF, if provided, is appended after the images.</p>
+          <p class="section-subtext">Receipt images are appended as additional pages, 2 per page. A receipts PDF is appended after images.</p>
 
           <div class="grid-2">
             <div>
@@ -510,112 +501,54 @@
               <input type="file" id="receiptPhotos" accept="image/*" multiple capture="environment" />
             </div>
             <div>
-              <label for="receiptPdf">Receipts PDF, optional</label>
+              <label for="receiptPdf">Import receipts from PDF</label>
               <input type="file" id="receiptPdf" accept="application/pdf" />
             </div>
           </div>
         </div>
 
         <div class="section no-print">
-          <div class="section-title">Export</div>
+          <div class="section-title">Export and Submit</div>
 
           <div class="grid-2">
             <div>
               <label for="filename">File name</label>
               <input type="text" id="filename" placeholder="Expense Report - Name - YYYY-MM-DD" />
             </div>
+
             <div style="display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap;">
-              <button type="button" class="btn-primary" id="exportBtn" disabled>Export PDF</button>
+              <button type="button" class="btn-primary" id="exportBtn">Export PDF</button>
+              <button type="button" class="btn-primary" id="submitBtn">Submit</button>
               <button type="button" class="btn-secondary" id="clearBtn">Clear</button>
             </div>
+          </div>
+
+          <div class="section-subtext" style="margin-top:10px;">
+            Submit emails the merged PDF to <strong>timesheets@vistageomatics.com</strong> via your Apps Script Web App endpoint.
           </div>
 
           <div class="status" id="statusBox"></div>
         </div>
 
-        <div class="footer-version" id="versionFooter">Version 3.0</div>
+        <div class="footer-version" id="versionFooter">Version 3.1</div>
       </form>
     </div>
   </div>
 
-  <script>
-    /******************************************************************
-     * REQUIRED LOCAL FILES (place in same folder as this HTML):
-     *  - html2pdf.bundle.min.js
-     *  - pdf-lib.min.js
-     *
-     * This page loads local copies first, if missing, it tries unpkg.
-     ******************************************************************/
-    const VERSION = "3.0";
-
-    const exportBtn = document.getElementById("exportBtn");
-    const statusBox = document.getElementById("statusBox");
-    const versionFooter = document.getElementById("versionFooter");
-    versionFooter.textContent = "Version " + VERSION;
-
-    function setStatus(msg, kind){
-      statusBox.style.display = "block";
-      statusBox.classList.remove("ok", "bad");
-      if (kind) statusBox.classList.add(kind);
-      statusBox.textContent = msg;
-    }
-    function clearStatus(){
-      statusBox.style.display = "none";
-      statusBox.textContent = "";
-      statusBox.classList.remove("ok", "bad");
-    }
-
-    function loadScript(src){
-      return new Promise((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = src;
-        s.defer = true;
-        s.onload = () => resolve(true);
-        s.onerror = () => reject(new Error("Failed to load " + src));
-        document.head.appendChild(s);
-      });
-    }
-
-    async function ensureLibraries(){
-      // html2pdf
-      if (typeof window.html2pdf === "undefined") {
-        try { await loadScript("html2pdf.bundle.min.js"); }
-        catch {
-          // fallback
-          await loadScript("https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js");
-        }
-      }
-
-      // pdf-lib
-      if (!window.PDFLib || !window.PDFLib.PDFDocument) {
-        try { await loadScript("pdf-lib.min.js"); }
-        catch {
-          // fallback
-          await loadScript("https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js");
-        }
-      }
-
-      if (typeof window.html2pdf === "undefined") throw new Error("html2pdf not available");
-      if (!window.PDFLib || !window.PDFLib.PDFDocument) throw new Error("pdf-lib not available");
-    }
-
-    (async function initLibraries(){
-      try{
-        setStatus("Loading export libraries…", "");
-        await ensureLibraries();
-        exportBtn.disabled = false;
-        setStatus("Ready to export.", "ok");
-        setTimeout(() => clearStatus(), 1200);
-      } catch (e){
-        exportBtn.disabled = true;
-        setStatus("Export libraries could not be loaded. Put html2pdf.bundle.min.js and pdf-lib.min.js beside this HTML.", "bad");
-      }
-    })();
-  </script>
+  <!-- Must exist in DOM for reliable export -->
+  <div id="exportSandbox" aria-hidden="true"></div>
 
   <script>
-    // App logic (runs regardless, export is enabled only when libs load)
+    /******************** CONFIG ********************/
+    const VERSION = "3.1";
 
+    // Paste your Apps Script Web App URL here (ends with /exec)
+    // Example: https://script.google.com/macros/s/XXXX/exec
+    const SUBMIT_WEBAPP_URL = "";  // <-- REQUIRED for Submit to work
+
+    const EMAIL_TO = "timesheets@vistageomatics.com";
+
+    /******************** UI HOOKS ********************/
     const tbody = document.getElementById("expenseTbody");
     const addRowBtn = document.getElementById("addRowBtn");
     const removeLastRowBtn = document.getElementById("removeLastRowBtn");
@@ -629,13 +562,34 @@
     const grandSumEl = document.getElementById("grandSum");
     const kmSumEl = document.getElementById("kmSum");
 
+    const exportBtn = document.getElementById("exportBtn");
+    const submitBtn = document.getElementById("submitBtn");
     const clearBtn = document.getElementById("clearBtn");
 
     const receiptPhotosInput = document.getElementById("receiptPhotos");
     const receiptPdfInput = document.getElementById("receiptPdf");
 
+    const statusBox = document.getElementById("statusBox");
+    const versionFooter = document.getElementById("versionFooter");
+    versionFooter.textContent = "Version " + VERSION;
+
+    const exportSandbox = document.getElementById("exportSandbox");
+
     const DEFAULT_ROWS = 3;
 
+    function setStatus(msg, kind){
+      statusBox.style.display = "block";
+      statusBox.classList.remove("ok", "bad");
+      if (kind) statusBox.classList.add(kind);
+      statusBox.textContent = msg;
+    }
+    function clearStatus(){
+      statusBox.style.display = "none";
+      statusBox.textContent = "";
+      statusBox.classList.remove("ok", "bad");
+    }
+
+    /******************** HELPERS ********************/
     function money(n){
       const num = Number(n || 0);
       return num.toLocaleString(undefined, { style:"currency", currency:"CAD" });
@@ -675,6 +629,7 @@
       return sel;
     }
 
+    // No spinner arrows (GST etc.)
     function moneyInput(){
       const input = document.createElement("input");
       input.type = "text";
@@ -799,9 +754,11 @@
 
     function cloneForPdf(){
       const source = document.getElementById("reportArea").cloneNode(true);
+
+      // remove export/submit controls from the report page (they’ll still be in the UI)
       source.querySelectorAll(".no-print").forEach(el => el.remove());
 
-      // Convert inputs/selects/textareas to wrapped blocks so nothing clips
+      // replace inputs with blocks so no clipping
       source.querySelectorAll("input, select, textarea").forEach(el => {
         const block = document.createElement("div");
         block.className = "print-block";
@@ -817,12 +774,22 @@
         el.replaceWith(block);
       });
 
-      source.querySelectorAll("tr").forEach(tr => {
-        tr.style.pageBreakInside = "avoid";
-        tr.style.breakInside = "avoid";
-      });
+      // ensure version shows in export
+      const vf = source.querySelector("#versionFooter");
+      if (vf) vf.textContent = "Version " + VERSION;
 
       return source;
+    }
+
+    async function waitForImages(root){
+      const imgs = Array.from(root.querySelectorAll("img"));
+      await Promise.all(imgs.map(async img => {
+        try{
+          if (img.complete && img.naturalWidth > 0) return;
+          if (img.decode) await img.decode();
+          else await new Promise(res => { img.onload = res; img.onerror = res; });
+        } catch { /* ignore */ }
+      }));
     }
 
     async function blobToBytes(blob){
@@ -831,28 +798,44 @@
     }
 
     async function exportReportPdfBlobLegalLandscape(){
-      const source = cloneForPdf();
+      if (typeof window.html2pdf === "undefined") throw new Error("html2pdf is not available");
+      // Clear sandbox and append clone (must be attached)
+      exportSandbox.innerHTML = "";
+      const clone = cloneForPdf();
+      exportSandbox.appendChild(clone);
 
+      // Let layout paint
+      await waitForImages(exportSandbox);
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+
+      // Legal landscape so the right side doesn’t clip
       const opt = {
-        margin:      [8, 8, 8, 8],
+        margin:      [0.25, 0.25, 0.25, 0.25],
         filename:    "temp.pdf",
         image:       { type: "jpeg", quality: 0.96 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 1400 },
-        jsPDF:       { unit: "in", format: "legal", orientation: "landscape" }
+        html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 1400, backgroundColor: "#ffffff" },
+        jsPDF:       { unit: "in", format: "legal", orientation: "landscape" },
+        pagebreak:   { mode: ["css", "legacy"] }
       };
 
-      const worker = window.html2pdf().set(opt).from(source).toPdf();
+      const worker = window.html2pdf().set(opt).from(clone).toPdf();
       const pdf = await worker.get("pdf");
-      return pdf.output("blob");
+      const blob = pdf.output("blob");
+
+      // cleanup
+      exportSandbox.innerHTML = "";
+      return blob;
     }
 
     async function appendReceiptImagesTwoPerPage(pdfDoc, imageFiles){
       const { rgb } = window.PDFLib;
 
+      // Legal portrait in points (8.5 x 14)
       const pageW = 8.5 * 72;
       const pageH = 14 * 72;
 
-      const margin = 36;
+      const margin = 36; // 0.5"
       const gutter = 18;
 
       const slotW = pageW - margin * 2;
@@ -879,22 +862,18 @@
 
           const x = margin + (slotW - drawW) / 2;
 
-          // top slot base
-          const topHalfBottomY = margin + slotH + gutter;
-          const topY = topHalfBottomY + (slotH - drawH) / 2;
-          // bottom slot base
+          // top slot region bottom edge
+          const topSlotBottom = margin + slotH + gutter;
+          const topY = topSlotBottom + (slotH - drawH) / 2;
           const bottomY = margin + (slotH - drawH) / 2;
 
-          page.drawImage(img, {
-            x,
-            y: j === 0 ? topY : bottomY,
-            width: drawW,
-            height: drawH
-          });
+          const y = (j === 0) ? topY : bottomY;
+
+          page.drawImage(img, { x, y, width: drawW, height: drawH });
 
           page.drawText(file.name || "Receipt", {
             x: margin,
-            y: (j === 0 ? topY : bottomY) - 14,
+            y: Math.max(12, y - 14),
             size: 10,
             color: rgb(0.35, 0.35, 0.35)
           });
@@ -912,50 +891,51 @@
       pages.forEach(p => pdfDoc.addPage(p));
     }
 
-    async function exportMergedPdf(){
+    async function buildMergedPdfBlob(){
+      if (!window.PDFLib || !window.PDFLib.PDFDocument) throw new Error("pdf-lib is not available");
+
+      const reportBlob = await exportReportPdfBlobLegalLandscape();
+      const reportBytes = await blobToBytes(reportBlob);
+      const reportDoc = await window.PDFLib.PDFDocument.load(reportBytes);
+
+      const finalDoc = await window.PDFLib.PDFDocument.create();
+      const reportPages = await finalDoc.copyPages(reportDoc, reportDoc.getPageIndices());
+      reportPages.forEach(p => finalDoc.addPage(p));
+
+      const images = Array.from(receiptPhotosInput.files || []);
+      const receiptsPdf = (receiptPdfInput.files && receiptPdfInput.files[0]) ? receiptPdfInput.files[0] : null;
+
+      if (images.length){
+        await appendReceiptImagesTwoPerPage(finalDoc, images);
+      }
+      if (receiptsPdf){
+        await appendReceiptPdf(finalDoc, receiptsPdf);
+      }
+
+      const finalBytes = await finalDoc.save();
+      return new Blob([finalBytes], { type: "application/pdf" });
+    }
+
+    function dataUrlFromBlob(blob){
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result));
+        r.onerror = reject;
+        r.readAsDataURL(blob);
+      });
+    }
+
+    async function exportPdfToDownload(){
       clearStatus();
 
-      if (typeof window.html2pdf === "undefined"){
-        setStatus("Export failed, html2pdf is not available. Put html2pdf.bundle.min.js beside this HTML.", "bad");
-        return;
-      }
-      if (!window.PDFLib || !window.PDFLib.PDFDocument){
-        setStatus("Export failed, pdf-lib is not available. Put pdf-lib.min.js beside this HTML.", "bad");
-        return;
-      }
-
-      if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
-      const outName = sanitizeFilename(filenameEl.value) + ".pdf";
-
       try{
-        setStatus("Rendering report, Legal, Landscape…", "");
+        setStatus("Building PDF (Legal report + receipts)…", "");
+        if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
 
-        const reportBlob = await exportReportPdfBlobLegalLandscape();
-        const reportBytes = await blobToBytes(reportBlob);
-        const reportDoc = await window.PDFLib.PDFDocument.load(reportBytes);
+        const blob = await buildMergedPdfBlob();
+        const outName = sanitizeFilename(filenameEl.value) + ".pdf";
 
-        const finalDoc = await window.PDFLib.PDFDocument.create();
-        const reportPages = await finalDoc.copyPages(reportDoc, reportDoc.getPageIndices());
-        reportPages.forEach(p => finalDoc.addPage(p));
-
-        const images = Array.from(receiptPhotosInput.files || []);
-        const receiptsPdf = receiptPdfInput.files && receiptPdfInput.files[0] ? receiptPdfInput.files[0] : null;
-
-        if (images.length){
-          setStatus("Appending receipt images, 2 per page…", "");
-          await appendReceiptImagesTwoPerPage(finalDoc, images);
-        }
-
-        if (receiptsPdf){
-          setStatus("Appending receipts PDF…", "");
-          await appendReceiptPdf(finalDoc, receiptsPdf);
-        }
-
-        setStatus("Building final PDF…", "");
-        const finalBytes = await finalDoc.save();
-        const finalBlob = new Blob([finalBytes], { type: "application/pdf" });
-
-        const url = URL.createObjectURL(finalBlob);
+        const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
         a.download = outName;
@@ -964,16 +944,61 @@
         a.remove();
         URL.revokeObjectURL(url);
 
-        setStatus("PDF exported, report plus receipts appended.", "ok");
-      } catch (err){
-        setStatus("Export failed, " + String(err), "bad");
+        setStatus("PDF exported.", "ok");
+      } catch (e){
+        setStatus("Export failed, " + String(e), "bad");
       }
     }
 
-    // Wire up
+    async function submitPdfByEmail(){
+      clearStatus();
+
+      if (!SUBMIT_WEBAPP_URL){
+        setStatus("Submit is not configured. Paste your Apps Script Web App URL into SUBMIT_WEBAPP_URL in the HTML.", "bad");
+        return;
+      }
+
+      try{
+        setStatus("Building PDF for submission…", "");
+        if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
+
+        const blob = await buildMergedPdfBlob();
+        const outName = sanitizeFilename(filenameEl.value) + ".pdf";
+        const dataUrl = await dataUrlFromBlob(blob); // "data:application/pdf;base64,...."
+
+        const payload = {
+          to: EMAIL_TO,
+          filename: outName,
+          mimeType: "application/pdf",
+          dataUrl,
+          meta: {
+            employeeName: employeeNameEl.value || "",
+            reportDate: reportDateEl.value || "",
+            version: VERSION
+          }
+        };
+
+        setStatus("Uploading and emailing…", "");
+        const res = await fetch(SUBMIT_WEBAPP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const txt = await res.text();
+        if (!res.ok) throw new Error(txt || ("HTTP " + res.status));
+
+        setStatus("Submitted. Email sent to timesheets@vistageomatics.com.", "ok");
+      } catch (e){
+        setStatus("Submit failed, " + String(e), "bad");
+      }
+    }
+
+    exportBtn.addEventListener("click", exportPdfToDownload);
+    submitBtn.addEventListener("click", submitPdfByEmail);
+
     addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
-    document.getElementById("exportBtn").addEventListener("click", exportMergedPdf);
 
     clearBtn.addEventListener("click", () => {
       clearStatus();
@@ -990,6 +1015,14 @@
       const today = new Date().toISOString().slice(0,10);
       if (!reportDateEl.value) reportDateEl.value = today;
       filenameEl.value = buildDefaultFilename();
+
+      // basic library check
+      setTimeout(() => {
+        const issues = [];
+        if (typeof window.html2pdf === "undefined") issues.push("html2pdf.bundle.min.js not loaded");
+        if (!window.PDFLib || !window.PDFLib.PDFDocument) issues.push("pdf-lib.min.js not loaded");
+        if (issues.length) setStatus("Library issue, " + issues.join(", ") + ". Put both JS files beside this HTML.", "bad");
+      }, 400);
     })();
   </script>
 </body>
