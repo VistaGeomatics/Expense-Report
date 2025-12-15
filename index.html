@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vista Geomatics, Expense Report</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-YcsIPGdhPK4P7lC2WZ8H9q9z9q2P2u0S1jHqjXqXg9qQF0g0VqgG2oHh7nqZ0yF5gk9QvO7kO5zWJQxQxw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <style>
+    :root{
+      --vista-blue:#165f7d;
+      --vista-blue-light:#2a7fa3;
+      --vista-blue-dark:#0b3045;
+
+      --bg-body:#eef3f9;
+      --bg-card:#ffffff;
+      --border-soft:#d6e2f0;
+      --text-main:#101827;
+      --text-muted:#6b7280;
+
+      --ok:#065f46;
+      --danger:#b91c1c;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      padding:24px;
+      font-family:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      color:var(--text-main);
+      background:radial-gradient(circle at top, #f4f8fc 0, #e4edf6 40%, #dde6f3 100%);
+    }
+
+    .page-wrap{ max-width:1200px; margin:0 auto; }
+
+    .container{
+      background:var(--bg-card);
+      border-radius:18px;
+      box-shadow:0 18px 40px rgba(5,41,66,0.18), 0 0 0 1px rgba(5,41,66,0.04);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .container::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:radial-gradient(circle at top right, rgba(22,95,125,0.18), transparent 55%);
+      opacity:0.9;
+    }
+
+    .header-bar{
+      position:relative;
+      z-index:1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:18px 28px;
+      background:linear-gradient(120deg, var(--vista-blue-light) 0%, var(--vista-blue) 40%, var(--vista-blue-dark) 100%);
+      color:#fff;
+      overflow:hidden;
+    }
+
+    .header-bar::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background-image:linear-gradient(135deg, rgba(255,255,255,0.07) 0, transparent 40%);
+      opacity:0.45;
+      pointer-events:none;
+    }
+
+    .header-left{ position:relative; z-index:1; display:flex; flex-direction:column; gap:4px; }
+    .header-left h1{
+      margin:0;
+      font-family:"Montserrat", sans-serif;
+      font-weight:400;
+      font-size:1.65rem;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      line-height:1.05;
+    }
+    .vista-bold{ font-weight:700; }
+    .geomatics-regular{ font-weight:400; }
+
+    .header-left p{ margin:0; font-size:0.96rem; opacity:0.92; }
+
+    .header-logo{
+      position:relative;
+      z-index:1;
+      height:90px;
+      width:auto;
+      filter:drop-shadow(0 6px 16px rgba(0,0,0,0.35));
+    }
+
+    form{
+      position:relative;
+      z-index:2;
+      padding:24px 28px 26px;
+      background:radial-gradient(circle at top left, rgba(226,240,246,0.55), transparent 55%) #fff;
+    }
+
+    .section{
+      margin-bottom:18px;
+      padding:16px 18px 18px;
+      border-radius:14px;
+      border:1px solid var(--border-soft);
+      background:linear-gradient(135deg, #fbfdff 0%, #f4f8fd 60%, #eff5fb 100%);
+      box-shadow:0 10px 24px rgba(5,41,66,0.05);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .section::before{
+      content:"";
+      position:absolute;
+      top:0; left:0; right:0;
+      height:5px;
+      background:linear-gradient(90deg, var(--vista-blue-light), var(--vista-blue-dark));
+    }
+
+    .section-title{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-weight:600;
+      margin-bottom:6px;
+      font-size:1.02rem;
+      color:var(--vista-blue-dark);
+      padding:4px 10px;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(22,95,125,0.09), rgba(11,48,69,0.05));
+      box-shadow:0 0 0 1px rgba(22,95,125,0.12);
+    }
+
+    .section-title::before{
+      content:"";
+      display:inline-block;
+      width:8px; height:8px;
+      border-radius:999px;
+      background:radial-gradient(circle, #ffffff 0, var(--vista-blue-light) 50%, var(--vista-blue-dark) 100%);
+      box-shadow:0 0 0 4px rgba(22,95,125,0.25);
+    }
+
+    .section-subtext{
+      font-size:0.82rem;
+      color:var(--text-muted);
+      margin:0 0 10px 0;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:12px;
+    }
+
+    label{
+      font-size:0.86rem;
+      font-weight:600;
+      display:block;
+      margin-bottom:4px;
+      color:var(--text-main);
+    }
+
+    input[type="text"], input[type="date"], input[type="number"], select{
+      width:100%;
+      padding:7px 10px;
+      font-size:0.9rem;
+      border:1px solid var(--border-soft);
+      border-radius:9px;
+      background:#f9fbff;
+      transition:border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.08s ease;
+    }
+
+    input:focus, select:focus{
+      outline:none;
+      border-color:var(--vista-blue-light);
+      background:#fff;
+      box-shadow:0 0 0 3px rgba(38,132,168,0.22);
+      transform:translateY(-1px);
+    }
+
+    .dept-cards{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+      margin-top:8px;
+    }
+
+    .dept-card{
+      border:1px solid var(--border-soft);
+      border-radius:12px;
+      background:#ffffff;
+      overflow:hidden;
+      box-shadow:0 8px 18px rgba(5,41,66,0.06);
+    }
+
+    .dept-card .top{
+      padding:10px 12px;
+      background:linear-gradient(90deg, rgba(22,95,125,0.12), rgba(11,48,69,0.06));
+      font-weight:700;
+      color:var(--vista-blue-dark);
+      font-size:0.9rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .dept-card .code{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:44px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:linear-gradient(120deg, var(--vista-blue-light), var(--vista-blue));
+      color:#fff;
+      font-size:0.82rem;
+      letter-spacing:0.04em;
+      box-shadow:0 8px 16px rgba(5,41,66,0.18);
+    }
+
+    .dept-card .body{
+      padding:10px 12px;
+      color:var(--text-muted);
+      font-size:0.82rem;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:6px;
+      font-size:0.85rem;
+      border-radius:10px;
+      overflow:hidden;
+    }
+
+    th, td{
+      border:1px solid #d7e2f1;
+      padding:8px 10px;
+      vertical-align:top;
+    }
+
+    th{
+      background:linear-gradient(90deg, #e6f1fb, #dde9f7);
+      text-align:left;
+      font-size:0.78rem;
+      text-transform:uppercase;
+      letter-spacing:0.04em;
+      color:#4b5563;
+      white-space:nowrap;
+    }
+
+    tbody tr:nth-child(even){ background:#f7faff; }
+
+    .cell-tight{ padding:6px 8px; }
+    .num{ text-align:right; }
+
+    .row-actions{
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+
+    .totals-bar{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      align-items:end;
+      margin-top:12px;
+    }
+
+    .totals-box{
+      border:1px solid var(--border-soft);
+      border-radius:12px;
+      background:#fff;
+      padding:12px;
+      box-shadow:0 8px 18px rgba(5,41,66,0.06);
+    }
+
+    .totals-box .label{
+      font-size:0.78rem;
+      text-transform:uppercase;
+      letter-spacing:0.06em;
+      color:var(--text-muted);
+      margin-bottom:6px;
+      font-weight:700;
+    }
+
+    .totals-box .value{
+      font-size:1.15rem;
+      font-weight:800;
+      color:var(--vista-blue-dark);
+    }
+
+    .hint{ font-size:0.78rem; color:var(--text-muted); margin-top:8px; }
+
+    .btn-row{
+      margin-top:18px;
+      display:flex;
+      gap:10px;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    button{
+      padding:9px 20px;
+      font-size:0.9rem;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-weight:700;
+      letter-spacing:0.05em;
+      text-transform:uppercase;
+      transition:transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .btn-primary{
+      background:linear-gradient(120deg, var(--vista-blue-light) 0%, var(--vista-blue) 40%, var(--vista-blue-dark) 100%);
+      color:#fff;
+      box-shadow:0 10px 24px rgba(5,41,66,0.45);
+    }
+    .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 14px 32px rgba(5,41,66,0.55); }
+
+    .btn-secondary{
+      background:#f3f4f6;
+      color:var(--text-main);
+      border:1px solid #d4d7dd;
+    }
+    .btn-secondary:hover{ background:#e5e7eb; transform:translateY(-1px); }
+
+    .btn-ghost{
+      background:#ffffff;
+      color:var(--vista-blue-dark);
+      border:1px solid var(--border-soft);
+    }
+    .btn-ghost:hover{ transform:translateY(-1px); box-shadow:0 10px 20px rgba(5,41,66,0.10); }
+
+    .status{
+      font-size:0.9rem;
+      font-weight:700;
+      padding:10px 14px;
+      border-radius:12px;
+      border:1px solid var(--border-soft);
+      background:#fff;
+      box-shadow:0 8px 18px rgba(5,41,66,0.06);
+      display:none;
+      align-items:center;
+      gap:10px;
+      max-width:520px;
+    }
+
+    .status.ok{ color:var(--ok); }
+    .status.bad{ color:var(--danger); }
+
+    .preview-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .preview-card{
+      border:1px solid var(--border-soft);
+      border-radius:12px;
+      background:#fff;
+      padding:8px;
+      box-shadow:0 8px 18px rgba(5,41,66,0.06);
+    }
+
+    .preview-card img{
+      width:100%;
+      height:120px;
+      object-fit:cover;
+      border-radius:10px;
+      display:block;
+    }
+
+    .preview-cap{
+      font-size:0.78rem;
+      color:var(--text-muted);
+      margin-top:6px;
+      word-break:break-word;
+      line-height:1.25;
+    }
+
+    @media (max-width: 720px){
+      body{ padding:12px; }
+      form{ padding:18px 16px 20px; }
+      .header-bar{ flex-direction:column; align-items:flex-start; }
+      .header-logo{ align-self:flex-end; height:56px; }
+    }
+
+    @media print{
+      body{ background:#fff; padding:0; }
+      .page-wrap{ max-width:none; }
+      .container{ box-shadow:none; border-radius:0; }
+      .container::before{ display:none; }
+      .row-actions, .btn-row, .no-print{ display:none !important; }
+      input, select{
+        border:1px solid #cbd5e1 !important;
+        background:#fff !important;
+        box-shadow:none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-wrap">
+    <div class="container" id="reportArea">
+      <div class="header-bar">
+        <div class="header-left">
+          <h1><span class="vista-bold">VISTA</span><span class="geomatics-regular">GEOMATICS</span></h1>
+          <p>Employee Out of Pocket Expense Report</p>
+        </div>
+        <img src="vista-geomatics.png" alt="Vista Geomatics Logo" class="header-logo" />
+      </div>
+
+      <form id="expenseForm" autocomplete="off">
+        <div class="section">
+          <div class="section-title">Employee and Department</div>
+          <p class="section-subtext">Complete your name and report date, use department codes in the table.</p>
+
+          <div class="grid-2">
+            <div>
+              <label for="employee_name">Name</label>
+              <input type="text" id="employee_name" placeholder="Employee name" />
+            </div>
+            <div>
+              <label for="report_date">Report Date</label>
+              <input type="date" id="report_date" />
+            </div>
+          </div>
+
+          <div class="dept-cards" aria-label="Department codes">
+            <div class="dept-card">
+              <div class="top"><span>Municipal</span><span class="code">100</span></div>
+              <div class="body">Use code <strong>100</strong> for municipal work and related expenses.</div>
+            </div>
+            <div class="dept-card">
+              <div class="top"><span>Oil &amp; Gas</span><span class="code">200</span></div>
+              <div class="body">Use code <strong>200</strong> for Oil &amp; Gas projects and travel.</div>
+            </div>
+            <div class="dept-card">
+              <div class="top"><span>Office</span><span class="code">300</span></div>
+              <div class="body">Use code <strong>300</strong> for office expenses and supplies.</div>
+            </div>
+            <div class="dept-card">
+              <div class="top"><span>Construction</span><span class="code">400</span></div>
+              <div class="body">Use code <strong>400</strong> for construction related expenses.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" id="entriesSection">
+          <div class="section-title">Expense Entries</div>
+          <p class="section-subtext">Enter each item on a separate line, totals auto-calculate.</p>
+
+          <div style="overflow:auto;">
+            <table id="expenseTable">
+              <thead>
+                <tr>
+                  <th style="width:120px;">Date</th>
+                  <th style="width:170px;">Vendor</th>
+                  <th style="min-width:220px;">Item Description</th>
+                  <th style="width:120px;" class="num">Subtotal</th>
+                  <th style="width:110px;" class="num">GST</th>
+                  <th style="width:120px;" class="num">Total</th>
+                  <th style="width:140px;">Department</th>
+                  <th style="width:130px;" class="num">Personal KM</th>
+                </tr>
+              </thead>
+              <tbody id="expenseTbody"></tbody>
+            </table>
+          </div>
+
+          <div class="row-actions no-print">
+            <button type="button" class="btn-ghost" id="addRowBtn">Add Row</button>
+            <button type="button" class="btn-ghost" id="removeLastRowBtn">Remove Last Row</button>
+          </div>
+
+          <div class="totals-bar">
+            <div class="totals-box">
+              <div class="label">Subtotal Total</div>
+              <div class="value" id="subtotalSum">$0.00</div>
+            </div>
+            <div class="totals-box">
+              <div class="label">GST Total</div>
+              <div class="value" id="gstSum">$0.00</div>
+            </div>
+            <div class="totals-box">
+              <div class="label">Grand Total</div>
+              <div class="value" id="grandSum">$0.00</div>
+            </div>
+            <div class="totals-box">
+              <div class="label">Personal KM Total</div>
+              <div class="value" id="kmSum">0</div>
+            </div>
+          </div>
+
+          <p class="hint">Please attach copies of receipts for reimbursement.</p>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Receipts</div>
+          <p class="section-subtext">Add receipt photos (camera supported on mobile) or upload a single receipts PDF.</p>
+
+          <div class="grid-2">
+            <div>
+              <label for="receiptPhotos">Receipt photos, take photo or upload</label>
+              <input type="file" id="receiptPhotos" accept="image/*" multiple capture="environment" />
+              <div class="hint">On mobile this typically offers Take Photo, Photo Library, Browse.</div>
+            </div>
+
+            <div>
+              <label for="receiptPdf">Receipts PDF, optional</label>
+              <input type="file" id="receiptPdf" accept="application/pdf" />
+              <div class="hint">Upload one combined PDF if you have scanned receipts.</div>
+            </div>
+          </div>
+
+          <div class="totals-box" style="margin-top:12px;">
+            <div class="label">Selected files</div>
+            <div id="receiptList" style="font-size:0.9rem; color:var(--text-main); line-height:1.5;">
+              No files selected.
+            </div>
+          </div>
+
+          <div id="receiptPreview" class="preview-grid"></div>
+        </div>
+
+        <div class="section no-print">
+          <div class="section-title">Export and Submit</div>
+          <p class="section-subtext">Export creates a PDF, submit emails it to timesheets@vistageomatics.com.</p>
+
+          <div class="grid-2">
+            <div>
+              <label for="filename">File name</label>
+              <input type="text" id="filename" placeholder="Expense Report - Name - YYYY-MM-DD" />
+              <div class="hint">Tip, keep it short if you add many receipt photos.</div>
+            </div>
+            <div style="display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap;">
+              <button type="button" class="btn-secondary" id="exportBtn">Export PDF</button>
+              <button type="button" class="btn-secondary" id="printBtn">Print</button>
+              <button type="button" class="btn-secondary" id="clearBtn">Clear</button>
+              <button type="button" class="btn-primary" id="submitBtn">Submit</button>
+            </div>
+          </div>
+
+          <div class="status" id="statusBox"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Paste your Apps Script Web App URL here
+    const SUBMIT_ENDPOINT = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+    const tbody = document.getElementById("expenseTbody");
+    const addRowBtn = document.getElementById("addRowBtn");
+    const removeLastRowBtn = document.getElementById("removeLastRowBtn");
+
+    const employeeNameEl = document.getElementById("employee_name");
+    const reportDateEl = document.getElementById("report_date");
+    const filenameEl = document.getElementById("filename");
+
+    const subtotalSumEl = document.getElementById("subtotalSum");
+    const gstSumEl = document.getElementById("gstSum");
+    const grandSumEl = document.getElementById("grandSum");
+    const kmSumEl = document.getElementById("kmSum");
+
+    const receiptPhotosInput = document.getElementById("receiptPhotos");
+    const receiptPdfInput = document.getElementById("receiptPdf");
+    const receiptList = document.getElementById("receiptList");
+    const receiptPreview = document.getElementById("receiptPreview");
+
+    const exportBtn = document.getElementById("exportBtn");
+    const printBtn = document.getElementById("printBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const submitBtn = document.getElementById("submitBtn");
+
+    const statusBox = document.getElementById("statusBox");
+
+    const DEFAULT_ROWS = 18;
+
+    function setStatus(msg, kind){
+      statusBox.style.display = "flex";
+      statusBox.classList.remove("ok", "bad");
+      if (kind) statusBox.classList.add(kind);
+      statusBox.textContent = msg;
+    }
+
+    function clearStatus(){
+      statusBox.style.display = "none";
+      statusBox.textContent = "";
+      statusBox.classList.remove("ok", "bad");
+    }
+
+    function money(n){
+      const num = Number(n || 0);
+      return num.toLocaleString(undefined, { style:"currency", currency:"CAD" });
+    }
+
+    function numVal(v){
+      const x = String(v ?? "").replace(/[^0-9.\-]/g, "");
+      const n = Number(x);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function makeInput({ type="text", placeholder="", step="", min="" } = {}){
+      const input = document.createElement("input");
+      input.type = type;
+      if (placeholder) input.placeholder = placeholder;
+      if (step) input.step = step;
+      if (min) input.min = min;
+      return input;
+    }
+
+    function deptSelect(){
+      const sel = document.createElement("select");
+      sel.innerHTML = `
+        <option value="">Select…</option>
+        <option value="100">Municipal 100</option>
+        <option value="200">Oil &amp; Gas 200</option>
+        <option value="300">Office 300</option>
+        <option value="400">Construction 400</option>
+      `;
+      return sel;
+    }
+
+    function addRow(){
+      const tr = document.createElement("tr");
+
+      const tdDate = document.createElement("td"); tdDate.className = "cell-tight";
+      const date = makeInput({ type:"date" }); tdDate.appendChild(date);
+
+      const tdVendor = document.createElement("td"); tdVendor.className = "cell-tight";
+      const vendor = makeInput({ type:"text", placeholder:"Vendor" }); tdVendor.appendChild(vendor);
+
+      const tdDesc = document.createElement("td"); tdDesc.className = "cell-tight";
+      const desc = makeInput({ type:"text", placeholder:"Item description" }); tdDesc.appendChild(desc);
+
+      const tdSub = document.createElement("td"); tdSub.className = "cell-tight";
+      const sub = makeInput({ type:"number", step:"0.01", min:"0" }); sub.classList.add("num"); tdSub.appendChild(sub);
+
+      const tdGst = document.createElement("td"); tdGst.className = "cell-tight";
+      const gst = makeInput({ type:"number", step:"0.01", min:"0" }); gst.classList.add("num"); tdGst.appendChild(gst);
+
+      const tdTotal = document.createElement("td"); tdTotal.className = "cell-tight";
+      const total = makeInput({ type:"text", placeholder:"0.00" }); total.classList.add("num"); total.readOnly = true; total.tabIndex = -1; tdTotal.appendChild(total);
+
+      const tdDept = document.createElement("td"); tdDept.className = "cell-tight";
+      const dept = deptSelect(); tdDept.appendChild(dept);
+
+      const tdKm = document.createElement("td"); tdKm.className = "cell-tight";
+      const km = makeInput({ type:"number", step:"0.1", min:"0" }); km.classList.add("num"); tdKm.appendChild(km);
+
+      tr.appendChild(tdDate);
+      tr.appendChild(tdVendor);
+      tr.appendChild(tdDesc);
+      tr.appendChild(tdSub);
+      tr.appendChild(tdGst);
+      tr.appendChild(tdTotal);
+      tr.appendChild(tdDept);
+      tr.appendChild(tdKm);
+
+      function recalcRow(){
+        const s = numVal(sub.value);
+        const g = numVal(gst.value);
+        total.value = (s + g).toFixed(2);
+        recalcTotals();
+      }
+
+      sub.addEventListener("input", recalcRow);
+      gst.addEventListener("input", recalcRow);
+      km.addEventListener("input", recalcTotals);
+
+      tbody.appendChild(tr);
+      recalcTotals();
+    }
+
+    function removeLastRow(){
+      if (tbody.children.length > 0){
+        tbody.removeChild(tbody.lastElementChild);
+        recalcTotals();
+      }
+    }
+
+    function recalcTotals(){
+      let subSum = 0;
+      let gstSum = 0;
+      let grand = 0;
+      let kmSum = 0;
+
+      Array.from(tbody.querySelectorAll("tr")).forEach(tr => {
+        const sub = tr.querySelector("td:nth-child(4) input");
+        const gst = tr.querySelector("td:nth-child(5) input");
+        const tot = tr.querySelector("td:nth-child(6) input");
+        const km  = tr.querySelector("td:nth-child(8) input");
+
+        const s = numVal(sub?.value);
+        const g = numVal(gst?.value);
+        const t = numVal(tot?.value);
+        const k = numVal(km?.value);
+
+        subSum += s;
+        gstSum += g;
+        grand  += t;
+        kmSum  += k;
+      });
+
+      subtotalSumEl.textContent = money(subSum);
+      gstSumEl.textContent = money(gstSum);
+      grandSumEl.textContent = money(grand);
+      kmSumEl.textContent = (kmSum % 1 === 0) ? String(kmSum.toFixed(0)) : String(kmSum.toFixed(1));
+    }
+
+    function initRows(){
+      tbody.innerHTML = "";
+      for (let i = 0; i < DEFAULT_ROWS; i++) addRow();
+    }
+
+    function clearPreviews(){
+      receiptPreview.innerHTML = "";
+    }
+
+    function renderSelectedReceipts(){
+      const photos = Array.from(receiptPhotosInput.files || []);
+      const pdf = receiptPdfInput.files && receiptPdfInput.files[0] ? receiptPdfInput.files[0] : null;
+
+      const list = [];
+      photos.forEach(f => list.push(`${f.name} (${Math.round(f.size/1024)} KB)`));
+      if (pdf) list.push(`${pdf.name} (${Math.round(pdf.size/1024)} KB)`);
+
+      receiptList.innerHTML = list.length ? list.join("<br>") : "No files selected.";
+
+      clearPreviews();
+      photos.forEach(file => {
+        const url = URL.createObjectURL(file);
+        const card = document.createElement("div");
+        card.className = "preview-card";
+
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = file.name;
+
+        const cap = document.createElement("div");
+        cap.className = "preview-cap";
+        cap.textContent = file.name;
+
+        card.appendChild(img);
+        card.appendChild(cap);
+        receiptPreview.appendChild(card);
+      });
+    }
+
+    function buildDefaultFilename(){
+      const name = (employeeNameEl.value || "").trim() || "Employee";
+      const date = reportDateEl.value ? reportDateEl.value : new Date().toISOString().slice(0,10);
+      return `Expense Report - ${name} - ${date}`;
+    }
+
+    function sanitizeFilename(name){
+      return String(name || "Expense Report").replace(/[\\\/:*?"<>|]+/g, " ").trim();
+    }
+
+    async function exportPdfBlob(){
+      clearStatus();
+
+      if (!filenameEl.value.trim()){
+        filenameEl.value = buildDefaultFilename();
+      }
+
+      const opt = {
+        margin:       [10, 10, 10, 10],
+        filename:     sanitizeFilename(filenameEl.value) + ".pdf",
+        image:        { type: "jpeg", quality: 0.95 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: "mm", format: "letter", orientation: "portrait" },
+        pagebreak:    { mode: ["css", "legacy"] }
+      };
+
+      // Clone the report area and strip non-print elements from PDF export
+      const source = document.getElementById("reportArea").cloneNode(true);
+      source.querySelectorAll(".no-print").forEach(el => el.remove());
+
+      // Ensure inputs render their values in the cloned DOM (important for PDF)
+      source.querySelectorAll("input, select").forEach(el => {
+        if (el.tagName === "SELECT") {
+          const selected = el.options[el.selectedIndex];
+          const span = document.createElement("div");
+          span.textContent = selected ? selected.textContent : "";
+          span.style.padding = "7px 10px";
+          span.style.border = "1px solid #d6e2f0";
+          span.style.borderRadius = "9px";
+          span.style.background = "#fff";
+          el.replaceWith(span);
+        } else if (el.type === "date" || el.type === "text" || el.type === "number") {
+          const span = document.createElement("div");
+          span.textContent = el.value || "";
+          span.style.padding = "7px 10px";
+          span.style.border = "1px solid #d6e2f0";
+          span.style.borderRadius = "9px";
+          span.style.background = "#fff";
+          el.replaceWith(span);
+        }
+      });
+
+      setStatus("Exporting PDF…", "");
+      const worker = html2pdf().set(opt).from(source).toPdf();
+      const pdf = await worker.get("pdf");
+
+      // Convert to Blob
+      const blob = pdf.output("blob");
+      setStatus("PDF exported.", "ok");
+      return { blob, filename: opt.filename };
+    }
+
+    function readFileAsDataUrl(file){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(reader.error || new Error("File read error"));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function stripDataUrlPrefix(dataUrl){
+      const idx = dataUrl.indexOf("base64,");
+      if (idx === -1) return "";
+      return dataUrl.slice(idx + "base64,".length);
+    }
+
+    async function submitReport(){
+      if (!SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.includes("PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE")){
+        setStatus("Submit is not configured, paste your Apps Script web app URL into SUBMIT_ENDPOINT.", "bad");
+        return;
+      }
+
+      const employeeName = (employeeNameEl.value || "").trim();
+      if (!employeeName){
+        setStatus("Please enter your name before submitting.", "bad");
+        employeeNameEl.focus();
+        return;
+      }
+
+      try {
+        setStatus("Creating PDF…", "");
+        const { blob } = await exportPdfBlob();
+
+        setStatus("Preparing attachments…", "");
+        const pdfDataUrl = await readFileAsDataUrl(new File([blob], "report.pdf", { type: "application/pdf" }));
+        const pdfBase64 = stripDataUrlPrefix(pdfDataUrl);
+
+        const photos = Array.from(receiptPhotosInput.files || []);
+        const receiptImages = [];
+        for (const f of photos){
+          const dataUrl = await readFileAsDataUrl(f);
+          receiptImages.push({
+            base64: stripDataUrlPrefix(dataUrl),
+            mimeType: f.type || "image/jpeg",
+            name: f.name || "receipt"
+          });
+        }
+
+        const pdfFile = receiptPdfInput.files && receiptPdfInput.files[0] ? receiptPdfInput.files[0] : null;
+        let receiptPdfBase64 = "";
+        if (pdfFile){
+          const dataUrl = await readFileAsDataUrl(pdfFile);
+          receiptPdfBase64 = stripDataUrlPrefix(dataUrl);
+        }
+
+        const payload = {
+          employeeName: employeeName,
+          reportDate: (reportDateEl.value || "").trim(),
+          filename: sanitizeFilename(filenameEl.value || buildDefaultFilename()),
+          pdfBase64: pdfBase64,
+          receiptImages: receiptImages,
+          receiptPdfBase64: receiptPdfBase64
+        };
+
+        setStatus("Submitting…", "");
+
+        const res = await fetch(SUBMIT_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let parsed = null;
+        try { parsed = JSON.parse(text); } catch {}
+
+        if (!res.ok || (parsed && parsed.ok === false)){
+          const errMsg = parsed && parsed.error ? parsed.error : text;
+          setStatus("Submit failed, please export and email manually, error, " + errMsg, "bad");
+          return;
+        }
+
+        setStatus("Submitted successfully, emailed to timesheets@vistageomatics.com.", "ok");
+
+      } catch (err){
+        setStatus("Submit failed, please export and email manually, error, " + String(err), "bad");
+      }
+    }
+
+    // Events
+    addRowBtn.addEventListener("click", addRow);
+    removeLastRowBtn.addEventListener("click", removeLastRow);
+
+    receiptPhotosInput.addEventListener("change", renderSelectedReceipts);
+    receiptPdfInput.addEventListener("change", renderSelectedReceipts);
+
+    exportBtn.addEventListener("click", async () => {
+      try {
+        const { blob, filename } = await exportPdfBlob();
+        // Download for user convenience
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (e){
+        setStatus("Export failed, " + String(e), "bad");
+      }
+    });
+
+    printBtn.addEventListener("click", () => window.print());
+
+    clearBtn.addEventListener("click", () => {
+      clearStatus();
+      document.getElementById("expenseForm").reset();
+      initRows();
+      renderSelectedReceipts();
+      setTimeout(() => {
+        if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
+      }, 0);
+    });
+
+    submitBtn.addEventListener("click", submitReport);
+
+    // Init
+    (function init(){
+      initRows();
+      const today = new Date().toISOString().slice(0,10);
+      if (!reportDateEl.value) reportDateEl.value = today;
+      filenameEl.value = buildDefaultFilename();
+      renderSelectedReceipts();
+    })();
+  </script>
+</body>
+</html>
