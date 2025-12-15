@@ -6,8 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
-
-  <!-- FIX: Reliable html2pdf bundle (no SRI to avoid mismatch / blocked loads) -->
   <script defer src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -169,18 +167,19 @@
 
     input[type="text"], input[type="date"], input[type="number"], select, textarea{
       width:100%;
-      padding:7px 10px;
-      font-size:0.9rem;
+      min-width:0;
+      padding:9px 10px;
+      font-size:0.92rem;
       border:1px solid var(--border-soft);
       border-radius:9px;
       background:#f9fbff;
-      transition:border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.08s ease;
       font-family:inherit;
+      line-height:1.15;
     }
 
     textarea{
       resize:none;
-      min-height:38px;
+      min-height:42px;
       line-height:1.25;
       white-space:pre-wrap;
       word-break:break-word;
@@ -195,6 +194,8 @@
       transform:translateY(-1px);
     }
 
+    /* TABLE: ensure GST and numeric cells have enough room */
+    .table-wrap{ overflow:auto; }
     table{
       width:100%;
       border-collapse:collapse;
@@ -202,12 +203,15 @@
       font-size:0.85rem;
       border-radius:10px;
       overflow:hidden;
+      table-layout:fixed;
+      min-width:980px;
     }
 
     th, td{
       border:1px solid #d7e2f1;
       padding:8px 10px;
       vertical-align:top;
+      word-break:break-word;
     }
 
     th{
@@ -225,8 +229,15 @@
     .cell-tight{ padding:6px 8px; }
     .num{ text-align:right; }
 
-    /* Important: allow long content to wrap */
-    td{ word-break:break-word; }
+    /* Column widths */
+    .col-date{ width:120px; }
+    .col-vendor{ width:170px; }
+    .col-desc{ width:360px; }
+    .col-sub{ width:130px; }
+    .col-gst{ width:120px; }
+    .col-total{ width:130px; }
+    .col-dept{ width:150px; }
+    .col-km{ width:140px; }
 
     .row-actions{
       display:flex;
@@ -267,17 +278,6 @@
       color:var(--vista-blue-dark);
     }
 
-    .hint{ font-size:0.78rem; color:var(--text-muted); margin-top:8px; }
-
-    .btn-row{
-      margin-top:18px;
-      display:flex;
-      gap:10px;
-      justify-content:space-between;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-
     button{
       padding:9px 20px;
       font-size:0.9rem;
@@ -295,21 +295,23 @@
       color:#fff;
       box-shadow:0 10px 24px rgba(5,41,66,0.45);
     }
-    .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 14px 32px rgba(5,41,66,0.55); }
 
     .btn-secondary{
       background:#f3f4f6;
       color:var(--text-main);
       border:1px solid #d4d7dd;
     }
-    .btn-secondary:hover{ background:#e5e7eb; transform:translateY(-1px); }
 
     .btn-ghost{
       background:#ffffff;
       color:var(--vista-blue-dark);
       border:1px solid var(--border-soft);
     }
-    .btn-ghost:hover{ transform:translateY(-1px); box-shadow:0 10px 20px rgba(5,41,66,0.10); }
+
+    .btn-primary:hover, .btn-secondary:hover, .btn-ghost:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 26px rgba(5,41,66,0.18);
+    }
 
     .status{
       font-size:0.9rem;
@@ -320,43 +322,38 @@
       background:#fff;
       box-shadow:0 8px 18px rgba(5,41,66,0.06);
       display:none;
-      align-items:center;
-      gap:10px;
-      max-width:720px;
       margin-top:10px;
+      max-width:780px;
     }
     .status.ok{ color:var(--ok); }
     .status.bad{ color:var(--danger); }
 
     .no-print{ }
 
+    .print-block{
+      padding:9px 10px;
+      border:1px solid #d6e2f0;
+      border-radius:9px;
+      background:#fff;
+      min-height:42px;
+      white-space:pre-wrap;
+      word-break:break-word;
+      overflow:visible;
+      line-height:1.25;
+    }
+
     @media (max-width: 720px){
       body{ padding:12px; }
       form{ padding:18px 16px 20px; }
       .header-bar{ flex-direction:column; align-items:flex-start; }
       .header-logo{ align-self:flex-end; height:56px; }
-      th{ font-size:0.74rem; }
     }
 
     @media print{
       body{ background:#fff; padding:0; }
-      .page-wrap{ max-width:none; }
       .container{ box-shadow:none; border-radius:0; }
       .container::before{ display:none; }
       .no-print{ display:none !important; }
-    }
-
-    /* Used only in export clone to prevent cut-off */
-    .print-block{
-      padding:7px 10px;
-      border:1px solid #d6e2f0;
-      border-radius:9px;
-      background:#fff;
-      min-height:38px;
-      white-space:pre-wrap;
-      word-break:break-word;
-      overflow:visible;
-      line-height:1.25;
     }
   </style>
 </head>
@@ -375,7 +372,6 @@
       <form id="expenseForm" autocomplete="off">
         <div class="section">
           <div class="section-title">Employee</div>
-          <p class="section-subtext">Fill in your name and report date.</p>
 
           <div class="grid-2">
             <div>
@@ -389,22 +385,22 @@
           </div>
         </div>
 
-        <div class="section" id="entriesSection">
+        <div class="section">
           <div class="section-title">Expense Entries</div>
-          <p class="section-subtext">Item description </p>
+          <p class="section-subtext">Starts with 3 rows, add more rows as needed.</p>
 
-          <div style="overflow:auto;">
+          <div class="table-wrap">
             <table id="expenseTable">
               <thead>
                 <tr>
-                  <th style="width:120px;">Date</th>
-                  <th style="width:170px;">Vendor</th>
-                  <th style="min-width:320px;">Item Description</th>
-                  <th style="width:120px;" class="num">Subtotal</th>
-                  <th style="width:110px;" class="num">GST</th>
-                  <th style="width:120px;" class="num">Total</th>
-                  <th style="width:140px;">Department</th>
-                  <th style="width:130px;" class="num">Personal KM</th>
+                  <th class="col-date">Date</th>
+                  <th class="col-vendor">Vendor</th>
+                  <th class="col-desc">Item Description</th>
+                  <th class="col-sub num">Subtotal</th>
+                  <th class="col-gst num">GST</th>
+                  <th class="col-total num">Total</th>
+                  <th class="col-dept">Department</th>
+                  <th class="col-km num">Personal KM</th>
                 </tr>
               </thead>
               <tbody id="expenseTbody"></tbody>
@@ -438,7 +434,6 @@
 
         <div class="section no-print">
           <div class="section-title">Export</div>
-          <p class="section-subtext">Export creates a PDF that keeps wrapped text and avoids cut-off.</p>
 
           <div class="grid-2">
             <div>
@@ -478,10 +473,10 @@
 
     const statusBox = document.getElementById("statusBox");
 
-    const DEFAULT_ROWS = 12;
+    const DEFAULT_ROWS = 3; // per your request
 
     function setStatus(msg, kind){
-      statusBox.style.display = "flex";
+      statusBox.style.display = "block";
       statusBox.classList.remove("ok", "bad");
       if (kind) statusBox.classList.add(kind);
       statusBox.textContent = msg;
@@ -514,10 +509,10 @@
       return `Expense Report - ${name} - ${date}`;
     }
 
-    function autoGrowTextarea(el){
+    function autoGrow(el){
       if (!el) return;
       el.style.height = "auto";
-      el.style.height = Math.max(38, el.scrollHeight) + "px";
+      el.style.height = Math.max(42, el.scrollHeight) + "px";
     }
 
     function deptSelect(){
@@ -532,10 +527,9 @@
       return sel;
     }
 
-    function makeInput(type, placeholder, step, min){
+    function makeInput(type, step, min){
       const input = document.createElement("input");
       input.type = type;
-      if (placeholder) input.placeholder = placeholder;
       if (step) input.step = step;
       if (min) input.min = min;
       return input;
@@ -548,28 +542,37 @@
       const date = makeInput("date"); tdDate.appendChild(date);
 
       const tdVendor = document.createElement("td"); tdVendor.className = "cell-tight";
-      const vendor = makeInput("text","Vendor"); tdVendor.appendChild(vendor);
+      const vendor = document.createElement("input");
+      vendor.type = "text";
+      vendor.placeholder = "Vendor";
+      tdVendor.appendChild(vendor);
 
       const tdDesc = document.createElement("td"); tdDesc.className = "cell-tight";
       const desc = document.createElement("textarea");
-      desc.placeholder = "Item description";
-      desc.addEventListener("input", () => autoGrowTextarea(desc));
+      desc.placeholder = "Item description (can be long)";
+      desc.addEventListener("input", () => autoGrow(desc));
       tdDesc.appendChild(desc);
 
       const tdSub = document.createElement("td"); tdSub.className = "cell-tight";
-      const sub = makeInput("number","", "0.01","0"); sub.classList.add("num"); tdSub.appendChild(sub);
+      const sub = makeInput("number","0.01","0"); sub.classList.add("num"); tdSub.appendChild(sub);
 
       const tdGst = document.createElement("td"); tdGst.className = "cell-tight";
-      const gst = makeInput("number","", "0.01","0"); gst.classList.add("num"); tdGst.appendChild(gst);
+      const gst = makeInput("number","0.01","0"); gst.classList.add("num"); tdGst.appendChild(gst);
 
       const tdTotal = document.createElement("td"); tdTotal.className = "cell-tight";
-      const total = makeInput("text","0.00"); total.classList.add("num"); total.readOnly = true; total.tabIndex = -1; tdTotal.appendChild(total);
+      const total = document.createElement("input");
+      total.type = "text";
+      total.placeholder = "0.00";
+      total.readOnly = true;
+      total.tabIndex = -1;
+      total.classList.add("num");
+      tdTotal.appendChild(total);
 
       const tdDept = document.createElement("td"); tdDept.className = "cell-tight";
       const dept = deptSelect(); tdDept.appendChild(dept);
 
       const tdKm = document.createElement("td"); tdKm.className = "cell-tight";
-      const km = makeInput("number","", "0.1","0"); km.classList.add("num"); tdKm.appendChild(km);
+      const km = makeInput("number","0.1","0"); km.classList.add("num"); tdKm.appendChild(km);
 
       tr.appendChild(tdDate);
       tr.appendChild(tdVendor);
@@ -592,7 +595,7 @@
       km.addEventListener("input", recalcTotals);
 
       tbody.appendChild(tr);
-      autoGrowTextarea(desc);
+      autoGrow(desc);
       recalcTotals();
     }
 
@@ -639,11 +642,8 @@
 
     function cloneForPdf(){
       const source = document.getElementById("reportArea").cloneNode(true);
-
-      // Remove export buttons section from the PDF
       source.querySelectorAll(".no-print").forEach(el => el.remove());
 
-      // Convert form controls into wrapped blocks so nothing gets cut off
       source.querySelectorAll("input, select, textarea").forEach(el => {
         const block = document.createElement("div");
         block.className = "print-block";
@@ -655,15 +655,10 @@
           block.textContent = el.value || "";
         }
 
-        // Make description blocks a bit taller by default
-        if (el.tagName === "TEXTAREA") {
-          block.style.minHeight = "58px";
-        }
-
+        if (el.tagName === "TEXTAREA") block.style.minHeight = "64px";
         el.replaceWith(block);
       });
 
-      // Encourage row integrity across pages
       source.querySelectorAll("tr").forEach(tr => {
         tr.style.pageBreakInside = "avoid";
         tr.style.breakInside = "avoid";
@@ -675,9 +670,8 @@
     async function exportPdf(){
       clearStatus();
 
-      // FIX: html2pdf not defined guard
       if (typeof window.html2pdf === "undefined") {
-        setStatus("Export failed, html2pdf did not load. If you are on a locked-down network, allow cdn.jsdelivr.net or host html2pdf.bundle.min.js locally.", "bad");
+        setStatus("Export failed, html2pdf did not load. Allow cdn.jsdelivr.net or host html2pdf.bundle.min.js locally.", "bad");
         return;
       }
 
@@ -689,7 +683,6 @@
 
       try{
         setStatus("Exporting PDF…", "");
-
         const source = cloneForPdf();
 
         const opt = {
@@ -705,7 +698,6 @@
         const pdf = await worker.get("pdf");
         const blob = pdf.output("blob");
 
-        // Download
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -721,7 +713,6 @@
       }
     }
 
-    // Events
     addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
     exportBtn.addEventListener("click", exportPdf);
@@ -736,7 +727,6 @@
       filenameEl.value = buildDefaultFilename();
     });
 
-    // Init
     (function init(){
       initRows();
       const today = new Date().toISOString().slice(0,10);
