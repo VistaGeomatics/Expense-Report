@@ -19,7 +19,9 @@
       --ok:#065f46;
       --danger:#b91c1c;
     }
+
     *{ box-sizing:border-box; }
+
     body{
       margin:0;
       padding:18px;
@@ -27,7 +29,9 @@
       color:var(--text-main);
       background:radial-gradient(circle at top, #f4f8fc 0, #e4edf6 40%, #dde6f3 100%);
     }
+
     .page-wrap{ max-width:1400px; margin:0 auto; }
+
     .container{
       background:var(--bg-card);
       border-radius:18px;
@@ -43,6 +47,7 @@
       background:radial-gradient(circle at top right, rgba(22,95,125,0.18), transparent 55%);
       opacity:0.9;
     }
+
     .header-bar{
       position:relative;
       z-index:1;
@@ -67,6 +72,7 @@
     .vista-bold{ font-weight:700; }
     .geomatics-regular{ font-weight:400; }
     .header-left p{ margin:0; font-size:0.95rem; opacity:0.92; }
+
     .header-logo{
       height:78px;
       width:auto;
@@ -101,7 +107,7 @@
     }
     .section-title{
       display:inline-flex; align-items:center; gap:8px;
-      font-weight:800;
+      font-weight:900;
       margin-bottom:6px;
       font-size:1.02rem;
       color:var(--vista-blue-dark);
@@ -128,10 +134,11 @@
 
     label{
       font-size:0.86rem;
-      font-weight:800;
+      font-weight:900;
       display:block;
       margin-bottom:4px;
     }
+
     input[type="text"], input[type="date"], select, textarea{
       width:100%;
       min-width:0;
@@ -143,6 +150,7 @@
       font-family:inherit;
       line-height:1.15;
     }
+
     textarea{
       resize:none;
       min-height:44px;
@@ -151,6 +159,7 @@
       word-break:break-word;
       overflow:hidden;
     }
+
     input:focus, select:focus, textarea:focus{
       outline:none;
       border-color:var(--vista-blue-light);
@@ -159,7 +168,7 @@
       transform:translateY(-1px);
     }
 
-    /* Landscape entries area, no sideways scrolling */
+    /* Landscape entries area: no sideways scrolling */
     .entries-landscape{ width:100%; overflow:hidden; }
 
     table{
@@ -171,6 +180,7 @@
       overflow:hidden;
       table-layout:fixed;
     }
+
     th, td{
       border:1px solid #d7e2f1;
       padding:8px 8px;
@@ -178,6 +188,7 @@
       word-break:break-word;
       overflow:visible;
     }
+
     th{
       background:linear-gradient(90deg, #e6f1fb, #dde9f7);
       text-align:left;
@@ -188,11 +199,16 @@
       white-space:normal;
       line-height:1.15;
     }
+
     tbody tr:nth-child(even){ background:#f7faff; }
     .cell-tight{ padding:6px 7px; }
     td input, td textarea, td select{ width:100%; min-width:0; }
 
     .money-input, .km-input{ text-align:right; font-variant-numeric:tabular-nums; }
+
+    /* Prevent date/department from clipping */
+    .no-wrap{ white-space:nowrap; }
+    select{ max-width:100%; }
 
     .row-actions{
       display:flex;
@@ -212,6 +228,7 @@
     @media (max-width: 900px){
       .totals-bar{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
     }
+
     .totals-box{
       border:1px solid var(--border-soft);
       border-radius:12px;
@@ -330,54 +347,61 @@
       border-radius:10px;
     }
 
-    /* Export sandbox off-screen but visible to renderer */
+    /* Export sandbox: keep on-screen (prevents cropping), but effectively invisible */
     #exportSandbox{
       position:fixed;
-      left:0;
-      top:0;
-      width:13.0in;
-      background:#fff;
+      inset:0;
       pointer-events:none;
-      transform:translateX(-200vw);
-      z-index:0;
+      opacity:0.01;     /* NOT 0, avoids blank capture */
+      z-index:-1;       /* behind everything */
+      overflow:auto;
+      background:transparent;
     }
 
     /* Export mode tweaks */
     .export-mode form{ padding:14px 14px 10px; }
     .export-mode .section{ box-shadow:none; }
-    .export-mode table{ font-size:0.70rem; }
-    .export-mode th{ font-size:0.60rem; }
-    .export-mode th, .export-mode td{ padding:6px 6px; }
     .export-mode .header-logo{ height:58px; }
     .export-mode .header-left h1{ font-size:1.15rem; }
     .export-mode .section-title{ font-size:0.90rem; }
 
-    /* Export receipts full page, one per page */
+    /* Export table sizing: keep Date + Department readable */
+    .export-mode table{ font-size:0.70rem; }
+    .export-mode th{ font-size:0.60rem; }
+    .export-mode th, .export-mode td{ padding:6px 6px; }
+    .export-mode .no-wrap{ white-space:nowrap; }
+
+    /* Export receipts: 2 per page (stacked) */
     .export-receipts{
-      margin-top:10px;
       page-break-before:always;
       break-before:page;
+      margin-top:10px;
     }
-    .export-receipt-page{
+    .receipt-sheet{
       page-break-before:always;
       break-before:page;
       padding:0;
       margin:0;
-      border:0;
     }
-    .export-receipt-title{
+    .receipt-slot{
+      border:1px solid #d6e2f0;
+      border-radius:12px;
+      padding:10px;
+      margin:0 0 12px 0;
+      background:#fff;
+    }
+    .receipt-slot-title{
       font-size:0.85rem;
       font-weight:900;
       color:#374151;
       margin:0 0 8px 0;
       word-break:break-word;
     }
-    .export-receipt-img{
+    .receipt-slot-img{
       width:100%;
       height:auto;
       display:block;
-      border-radius:12px;
-      border:1px solid #d6e2f0;
+      border-radius:10px;
     }
   </style>
 </head>
@@ -421,14 +445,14 @@
             <table id="expenseTable">
               <thead>
                 <tr>
-                  <th style="width:9%;">Date</th>
-                  <th style="width:12%;">Vendor</th>
-                  <th style="width:34%;">Item Description</th>
+                  <th style="width:10%;">Date</th>
+                  <th style="width:13%;">Vendor</th>
+                  <th style="width:33%;">Item Description</th>
                   <th style="width:9%;">Subtotal</th>
                   <th style="width:8%;">GST</th>
                   <th style="width:9%;">Total</th>
                   <th style="width:10%;">Department</th>
-                  <th style="width:9%;">Personal KM</th>
+                  <th style="width:8%;">Personal KM</th>
                 </tr>
               </thead>
               <tbody id="expenseTbody"></tbody>
@@ -451,7 +475,7 @@
         <div class="section">
           <div class="section-title">Receipts</div>
           <p class="section-subtext">
-            Photos only (fast and reliable). These will export as full pages after the report, one receipt per page.
+            Photos only. Export will add receipts after the report, 2 per page.
           </p>
 
           <div class="grid-2">
@@ -502,7 +526,7 @@
   <script src="html2pdf.bundle.min.js"></script>
 
   <script>
-    const VERSION = "5.1";
+    const VERSION = "5.2";
     const EMAIL_TO = "timesheets@vistageomatics.com";
     const DEFAULT_ROWS = 3;
 
@@ -534,8 +558,8 @@
 
     versionFooter.textContent = "Version " + VERSION;
 
-    // Store receipt image data URLs for export pages
-    let receiptDataUrls = [];
+    // Cached receipt Data URLs for export reliability
+    let receiptDataUrls = []; // [{name, dataUrl}]
 
     function setStatus(msg, kind){
       statusBox.style.display = "block";
@@ -583,6 +607,7 @@
       `;
       return sel;
     }
+
     function moneyInput(){
       const input = document.createElement("input");
       input.type = "text";
@@ -592,6 +617,7 @@
       input.className = "money-input";
       return input;
     }
+
     function kmInput(){
       const input = document.createElement("input");
       input.type = "text";
@@ -606,7 +632,10 @@
       const tr = document.createElement("tr");
 
       const tdDate = document.createElement("td"); tdDate.className="cell-tight";
-      const date = document.createElement("input"); date.type="date"; tdDate.appendChild(date);
+      const date = document.createElement("input");
+      date.type="date";
+      date.classList.add("no-wrap");
+      tdDate.appendChild(date);
 
       const tdVendor = document.createElement("td"); tdVendor.className="cell-tight";
       const vendor = document.createElement("input"); vendor.type="text"; vendor.placeholder="Vendor"; tdVendor.appendChild(vendor);
@@ -627,7 +656,9 @@
       const total = moneyInput(); total.readOnly=true; total.tabIndex=-1; tdTotal.appendChild(total);
 
       const tdDept = document.createElement("td"); tdDept.className="cell-tight";
-      const dept = deptSelect(); tdDept.appendChild(dept);
+      const dept = deptSelect();
+      dept.classList.add("no-wrap");
+      tdDept.appendChild(dept);
 
       const tdKm = document.createElement("td"); tdKm.className="cell-tight";
       const km = kmInput(); tdKm.appendChild(km);
@@ -683,11 +714,12 @@
       for (let i=0; i<DEFAULT_ROWS; i++) addRow();
     }
 
-    function buildPrintBlock(value, minH){
+    function buildPrintBlock(value, minH, noWrap){
       const block = document.createElement("div");
       block.className = "print-block";
       block.textContent = value || "";
       if (minH) block.style.minHeight = minH;
+      if (noWrap) block.style.whiteSpace = "nowrap";
       return block;
     }
 
@@ -706,13 +738,11 @@
 
       const files = Array.from(receiptPhotosInput.files || []);
       receiptCountText.textContent = files.length ? `${files.length} receipt photo(s) selected.` : "No receipts selected.";
-
       if (!files.length) return;
 
       setStatus("Loading receipt photos…", "");
 
       for (const f of files){
-        // Use Data URLs so exports always include images (no blob URL timing issues on iPad)
         const dataUrl = await fileToDataUrl(f);
         receiptDataUrls.push({ name: f.name || "Receipt photo", dataUrl });
 
@@ -732,7 +762,7 @@
         receiptPreview.appendChild(card);
       }
 
-      setStatus("Receipts ready. Export will add them as full pages.", "ok");
+      setStatus("Receipts ready. Export will add them after the report, 2 per page.", "ok");
     }
 
     function clearReceipts(){
@@ -747,62 +777,79 @@
       const source = document.getElementById("reportArea").cloneNode(true);
       source.classList.add("export-mode");
 
-      // Force landscape page width
-      source.style.width = "13.0in";
-      source.style.maxWidth = "13.0in";
+      // Force page width to match Legal landscape content area (14in wide, minus margins)
+      // We'll target 13.5in usable width.
+      source.style.width = "13.5in";
+      source.style.maxWidth = "13.5in";
       source.style.margin = "0";
+      source.style.boxShadow = "none";
 
-      // Replace inputs with blocks so nothing is cut off
+      // Replace inputs/selects/textareas with print blocks (prevents cut-off)
       source.querySelectorAll("input, select, textarea").forEach(el => {
         if (el.tagName === "SELECT"){
           const opt = el.options[el.selectedIndex];
-          el.replaceWith(buildPrintBlock(opt ? opt.textContent : "", "34px"));
+          el.replaceWith(buildPrintBlock(opt ? opt.textContent : "", "34px", true));
         } else if (el.tagName === "TEXTAREA"){
-          el.replaceWith(buildPrintBlock(el.value || "", "56px"));
+          el.replaceWith(buildPrintBlock(el.value || "", "56px", false));
         } else {
-          el.replaceWith(buildPrintBlock(el.value || "", "34px"));
+          // Keep dates in one line
+          const isDate = (el.getAttribute("type") || "").toLowerCase() === "date";
+          el.replaceWith(buildPrintBlock(el.value || "", "34px", isDate));
         }
       });
-
-      // Remove on-screen receipt preview section contents from report export (we export receipts separately as pages)
-      const preview = source.querySelector("#receiptPreview");
-      if (preview) preview.innerHTML = "";
 
       // Remove buttons/status from export
       source.querySelectorAll("button").forEach(b => b.remove());
       const status = source.querySelector("#statusBox");
       if (status) status.remove();
 
-      // Version
+      // Clear on-screen receipt preview in the report portion
+      const preview = source.querySelector("#receiptPreview");
+      if (preview) preview.innerHTML = "";
+
+      // Version footer
       const vf = source.querySelector("#versionFooter");
       if (vf) vf.textContent = "Version " + VERSION;
 
-      // Append receipt pages (full-page) after report
+      // Append receipt pages: 2 per page stacked
       if (receiptDataUrls.length){
         const wrap = document.createElement("div");
         wrap.className = "export-receipts";
 
-        receiptDataUrls.forEach((r, idx) => {
-          const page = document.createElement("div");
-          page.className = "export-receipt-page";
+        for (let i = 0; i < receiptDataUrls.length; i += 2){
+          const sheet = document.createElement("div");
+          sheet.className = "receipt-sheet";
 
-          const title = document.createElement("div");
-          title.className = "export-receipt-title";
-          title.textContent = `Receipt ${idx + 1}, ${r.name}`;
-          page.appendChild(title);
+          const a = receiptDataUrls[i];
+          sheet.appendChild(makeReceiptSlot(i + 1, a));
 
-          const img = document.createElement("img");
-          img.className = "export-receipt-img";
-          img.src = r.dataUrl;
-          page.appendChild(img);
+          const b = receiptDataUrls[i + 1];
+          if (b) sheet.appendChild(makeReceiptSlot(i + 2, b));
 
-          wrap.appendChild(page);
-        });
+          wrap.appendChild(sheet);
+        }
 
         source.appendChild(wrap);
       }
 
       return source;
+    }
+
+    function makeReceiptSlot(num, receipt){
+      const slot = document.createElement("div");
+      slot.className = "receipt-slot";
+
+      const title = document.createElement("div");
+      title.className = "receipt-slot-title";
+      title.textContent = `Receipt ${num}, ${receipt.name}`;
+      slot.appendChild(title);
+
+      const img = document.createElement("img");
+      img.className = "receipt-slot-img";
+      img.src = receipt.dataUrl;
+      slot.appendChild(img);
+
+      return slot;
     }
 
     async function waitForImages(root){
@@ -829,6 +876,10 @@
       await new Promise(requestAnimationFrame);
       await new Promise(requestAnimationFrame);
 
+      // Measure exact clone size to prevent cropping
+      const w = Math.ceil(clone.scrollWidth);
+      const h = Math.ceil(clone.scrollHeight);
+
       const opt = {
         margin:      [0.25, 0.25, 0.25, 0.25],
         filename:    "temp.pdf",
@@ -838,9 +889,12 @@
           useCORS: true,
           logging: false,
           backgroundColor: "#ffffff",
-          windowWidth: 1248, // 13in * 96dpi
           scrollX: 0,
-          scrollY: 0
+          scrollY: 0,
+          windowWidth: w,
+          windowHeight: h,
+          width: w,
+          height: h
         },
         jsPDF:       { unit:"in", format:"legal", orientation:"landscape" },
         pagebreak:   { mode:["css","legacy"] }
@@ -859,7 +913,7 @@
       try{
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
 
-        // Ensure receipt cache is built (data URLs)
+        // Ensure receipt cache exists if files selected
         if ((receiptPhotosInput.files || []).length && receiptDataUrls.length === 0){
           await rebuildReceiptPreviewAndCache();
         }
@@ -919,6 +973,7 @@ Thanks,`;
       }
     }
 
+    // Events
     addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
 
@@ -946,6 +1001,7 @@ Thanks,`;
       filenameEl.value = buildDefaultFilename();
     });
 
+    // Init
     (function init(){
       initRows();
       const today = new Date().toISOString().slice(0,10);
@@ -953,6 +1009,7 @@ Thanks,`;
       filenameEl.value = buildDefaultFilename();
       receiptCountText.textContent = "No receipts selected.";
       receiptPreview.innerHTML = "";
+
       setTimeout(() => {
         if (typeof window.html2pdf === "undefined") {
           setStatus("Missing html2pdf.bundle.min.js, place it beside index.html.", "bad");
