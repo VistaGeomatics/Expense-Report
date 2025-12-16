@@ -162,6 +162,7 @@
       transform:translateY(-1px);
     }
 
+    /* Keep the table full-width without horizontal scrolling */
     .entries-wrap{ width:100%; overflow:hidden; }
 
     table{
@@ -198,6 +199,11 @@
       text-align:right;
       font-variant-numeric:tabular-nums;
     }
+
+    /* Remove spinner arrows on number inputs if any slip in */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
+    input[type=number]{ -moz-appearance:textfield; }
 
     .row-actions{
       display:flex;
@@ -286,6 +292,7 @@
     .status.ok{ color:var(--ok); }
     .status.bad{ color:var(--danger); }
 
+    /* Receipts preview (screen) */
     #receiptPreview{
       margin-top:12px;
       display:grid;
@@ -493,8 +500,7 @@
         <div class="section">
           <div class="section-title">Receipts</div>
           <p class="section-subtext">
-            Photos only. Export will append receipts after the report in portrait pages, 2 per page, large and legible.
-            Receipt file uploads cannot be restored after closing the browser, you will need to reselect them if you reopen.
+            Photos only. Export will append receipts after the report, 2 per page, large and legible.
           </p>
 
           <div class="grid-2">
@@ -553,10 +559,6 @@
     const EMAIL_TO = "timesheets@vistageomatics.com";
     const DEFAULT_ROWS = 3;
 
-    // Auto-save settings
-    const STORAGE_KEY = "vista_expense_report_v1";
-    const SAVE_DEBOUNCE_MS = 350;
-
     const tbody = document.getElementById("expenseTbody");
     const addRowBtn = document.getElementById("addRowBtn");
     const removeLastRowBtn = document.getElementById("removeLastRowBtn");
@@ -586,7 +588,6 @@
     versionFooter.textContent = "Version " + VERSION;
 
     let receiptDataUrls = []; // [{name, dataUrl, w, h}]
-    let saveTimer = null;
 
     function setStatus(msg, kind){
       statusBox.style.display = "block";
@@ -662,14 +663,7 @@
       return input;
     }
 
-    function scheduleSave(){
-      if (saveTimer) clearTimeout(saveTimer);
-      saveTimer = setTimeout(() => {
-        try { saveToLocal(); } catch {}
-      }, SAVE_DEBOUNCE_MS);
-    }
-
-    function addRow(prefill){
+    function addRow(){
       const tr = document.createElement("tr");
 
       const tdDate = document.createElement("td"); tdDate.className="cell-tight";
@@ -683,7 +677,7 @@
       const tdDesc = document.createElement("td"); tdDesc.className="cell-tight";
       const desc = document.createElement("textarea");
       desc.placeholder="Item description (can be long)";
-      desc.addEventListener("input", () => { autoGrow(desc); scheduleSave(); });
+      desc.addEventListener("input", () => autoGrow(desc));
       tdDesc.appendChild(desc);
 
       const tdSub = document.createElement("td"); tdSub.className="cell-tight";
@@ -710,35 +704,12 @@
         const g = parseMoney(gst.value);
         total.value = (s + g).toFixed(2);
         recalcTotals();
-        scheduleSave();
       }
       sub.addEventListener("input", recalcRow);
       gst.addEventListener("input", recalcRow);
-      km.addEventListener("input", () => { recalcTotals(); scheduleSave(); });
-
-      date.addEventListener("input", scheduleSave);
-      vendor.addEventListener("input", scheduleSave);
-      dept.addEventListener("change", scheduleSave);
-
-      // prefill if provided
-      if (prefill){
-        date.value = prefill.date || "";
-        vendor.value = prefill.vendor || "";
-        desc.value = prefill.desc || "";
-        sub.value = prefill.sub || "";
-        gst.value = prefill.gst || "";
-        total.value = prefill.total || "";
-        km.value = prefill.km || "";
-        // deptText restore by value if possible
-        if (prefill.deptValue) dept.value = prefill.deptValue;
-      }
+      km.addEventListener("input", recalcTotals);
 
       autoGrow(desc);
-      // if we prefilled sub/gst we need totals
-      const s = parseMoney(sub.value);
-      const g = parseMoney(gst.value);
-      total.value = (s + g).toFixed(2);
-
       recalcTotals();
     }
 
@@ -746,7 +717,6 @@
       if (tbody.children.length > 0){
         tbody.removeChild(tbody.lastElementChild);
         recalcTotals();
-        scheduleSave();
       }
     }
 
@@ -824,8 +794,7 @@
         receiptPreview.appendChild(card);
       }
 
-      setStatus("Receipts ready. Export will include them (portrait pages, 2 per page).", "ok");
-      // NOTE: we do NOT save receipt files to localStorage (too large / unreliable)
+      setStatus("Receipts ready. Export will include them 2 per page, large.", "ok");
     }
 
     function clearReceipts(){
@@ -846,10 +815,9 @@
         const gst = tr.querySelector("td:nth-child(5) input")?.value || "";
         const total = tr.querySelector("td:nth-child(6) input")?.value || "";
         const deptSel = tr.querySelector("td:nth-child(7) select");
-        const deptValue = deptSel ? (deptSel.value || "") : "";
         const deptText = deptSel ? (deptSel.options[deptSel.selectedIndex]?.textContent || "") : "";
         const km = tr.querySelector("td:nth-child(8) input")?.value || "";
-        rows.push({ date, vendor, desc, sub, gst, total, deptValue, deptText, km });
+        rows.push({ date, vendor, desc, sub, gst, total, deptText, km });
       });
       return rows;
     }
@@ -950,6 +918,7 @@
       const usableH = pageH - marginPt*2;
 
       const imgData = canvas.toDataURL("image/jpeg", 0.92);
+
       const canvasW = canvas.width;
       const canvasH = canvas.height;
 
@@ -977,30 +946,21 @@
       return { w: imgW * r, h: imgH * r };
     }
 
-    // Receipts in PORTRAIT, 2 per page
     async function addReceiptPages(pdf, marginPt){
       if (!receiptDataUrls.length) return;
 
-      // Start receipts on a new PORTRAIT page
-      pdf.addPage("letter", "portrait");
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const usableW = pageW - marginPt*2;
+      const usableH = pageH - marginPt*2;
 
-      const getDims = () => {
-        const pageW = pdf.internal.pageSize.getWidth();
-        const pageH = pdf.internal.pageSize.getHeight();
-        const usableW = pageW - marginPt * 2;
-        const usableH = pageH - marginPt * 2;
-        return { usableW, usableH };
-      };
+      const gap = 10; // pt
+      const slotH = (usableH - gap) / 2;
 
-      const gap = 12;
-      const captionH = 14;
-      const captionPad = 6;
-
+      pdf.addPage();
       let i = 0;
-      while (i < receiptDataUrls.length){
-        const { usableW, usableH } = getDims();
-        const slotH = (usableH - gap) / 2;
 
+      while (i < receiptDataUrls.length){
         for (let slot = 0; slot < 2; slot++){
           if (i >= receiptDataUrls.length) break;
 
@@ -1008,13 +968,12 @@
           const yTop = marginPt + (slot === 0 ? 0 : (slotH + gap));
 
           pdf.setFont("helvetica", "bold");
-          pdf.setFontSize(11);
+          pdf.setFontSize(10);
           const caption = `Receipt ${i+1}: ${r.name || "Receipt"}`;
-          const shown = caption.length > 95 ? caption.slice(0, 95) + "…" : caption;
-          pdf.text(shown, marginPt, yTop + captionH);
+          pdf.text(caption.length > 90 ? caption.slice(0, 90) + "…" : caption, marginPt, yTop + 12);
 
-          const imgBoxY = yTop + captionH + captionPad;
-          const imgBoxH = slotH - (captionH + captionPad);
+          const imgBoxY = yTop + 18;
+          const imgBoxH = slotH - 22;
           const imgBoxW = usableW;
 
           const fitted = fitRect(r.w || 1000, r.h || 1000, imgBoxW, imgBoxH);
@@ -1028,7 +987,7 @@
         }
 
         if (i < receiptDataUrls.length){
-          pdf.addPage("letter", "portrait");
+          pdf.addPage();
         }
       }
     }
@@ -1050,13 +1009,12 @@
         windowWidth: exportRoot.scrollWidth
       });
 
-      // Report in landscape letter
       const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "letter" });
       const marginPt = 24;
 
       await canvasToPagedPdf(pdf, canvas, marginPt);
 
-      setStatus("Adding receipts (portrait pages, 2 per page)…", "");
+      setStatus("Adding receipts (2 per page)…", "");
       await addReceiptPages(pdf, marginPt);
 
       return pdf.output("blob");
@@ -1126,75 +1084,9 @@ Thanks,`;
       }
     }
 
-    // -------------------------
-    // LocalStorage Auto-Save
-    // -------------------------
-    function saveToLocal(){
-      const data = {
-        version: VERSION,
-        savedAt: new Date().toISOString(),
-        employee_name: employeeNameEl.value || "",
-        report_date: reportDateEl.value || "",
-        filename: filenameEl.value || "",
-        rows: getRowData()
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
-
-    function loadFromLocal(){
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return false;
-
-      let data = null;
-      try { data = JSON.parse(raw); } catch { return false; }
-      if (!data || typeof data !== "object") return false;
-
-      employeeNameEl.value = data.employee_name || "";
-      reportDateEl.value = data.report_date || reportDateEl.value || "";
-      filenameEl.value = data.filename || filenameEl.value || "";
-
-      tbody.innerHTML = "";
-      const rows = Array.isArray(data.rows) ? data.rows : [];
-      if (rows.length){
-        for (const r of rows){
-          addRow({
-            date: r.date || "",
-            vendor: r.vendor || "",
-            desc: r.desc || "",
-            sub: r.sub || "",
-            gst: r.gst || "",
-            total: r.total || "",
-            deptValue: r.deptValue || "",
-            km: r.km || ""
-          });
-        }
-      } else {
-        for (let i=0; i<DEFAULT_ROWS; i++) addRow();
-      }
-
-      recalcTotals();
-      return true;
-    }
-
-    function clearLocal(){
-      localStorage.removeItem(STORAGE_KEY);
-    }
-
-    // -------------------------
-    // Event wiring
-    // -------------------------
-    addRowBtn.addEventListener("click", () => { addRow(); scheduleSave(); });
+    // Events
+    addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
-
-    employeeNameEl.addEventListener("input", () => {
-      if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
-      scheduleSave();
-    });
-    reportDateEl.addEventListener("input", () => {
-      if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
-      scheduleSave();
-    });
-    filenameEl.addEventListener("input", scheduleSave);
 
     receiptPhotosInput.addEventListener("change", async () => {
       clearStatus();
@@ -1210,37 +1102,21 @@ Thanks,`;
     clearBtn.addEventListener("click", () => {
       clearStatus();
       document.getElementById("expenseForm").reset();
-      tbody.innerHTML = "";
-      for (let i=0; i<DEFAULT_ROWS; i++) addRow();
+      initRows();
       clearReceipts();
-
       const today = new Date().toISOString().slice(0,10);
       reportDateEl.value = today;
       filenameEl.value = buildDefaultFilename();
-
-      clearLocal();
-      setStatus("Form cleared. Saved data cleared on this device.", "ok");
     });
 
     // Init
     (function init(){
+      initRows();
       const today = new Date().toISOString().slice(0,10);
       if (!reportDateEl.value) reportDateEl.value = today;
-
-      const loaded = loadFromLocal();
-      if (!loaded){
-        tbody.innerHTML = "";
-        for (let i=0; i<DEFAULT_ROWS; i++) addRow();
-        filenameEl.value = buildDefaultFilename();
-      } else {
-        // if filename was empty in storage, rebuild
-        if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
-        setStatus("Restored saved expense report data on this device. Receipt photos must be reselected.", "ok");
-      }
-
+      filenameEl.value = buildDefaultFilename();
       receiptCountText.textContent = "No receipts selected.";
       receiptPreview.innerHTML = "";
-      recalcTotals();
     })();
   </script>
 </body>
