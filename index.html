@@ -29,6 +29,7 @@
       background:radial-gradient(circle at top, #f4f8fc 0, #e4edf6 40%, #dde6f3 100%);
     }
     .page-wrap{ max-width:1400px; margin:0 auto; }
+
     .container{
       background:var(--bg-card);
       border-radius:18px;
@@ -334,8 +335,8 @@
       *{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
 
-    /* Print report page */
     .p-page{ page-break-after: always; }
+
     .p-header{
       display:flex;
       align-items:center;
@@ -373,7 +374,6 @@
     }
     .p-label{ font-size:11px; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
     .p-value{ font-size:13px; font-weight:800; color:#111827; word-break:break-word; }
-
     .p-note{ font-size:11px; color:#6b7280; margin:6px 0 0 0; font-weight:700; }
 
     .p-table{
@@ -394,10 +394,9 @@
       text-transform:uppercase;
       letter-spacing:0.04em;
       font-size:10px;
-      white-space:nowrap; /* keep headers readable */
+      white-space:nowrap; /* keeps headers stable */
     }
-
-    /* IMPORTANT: ensure Date + Dept never cut off */
+    /* Critical: date + department never shrink/cut */
     .p-nowrap{ white-space:nowrap; word-break:normal; overflow-wrap:normal; }
 
     .p-totals{
@@ -424,9 +423,7 @@
     }
 
     /* Print receipts: 2 per page */
-    .p-receipts-page{
-      page-break-after: always;
-    }
+    .p-receipts-page{ page-break-after: always; }
     .p-receipts-grid{
       display:grid;
       grid-template-rows: 1fr 1fr;
@@ -440,7 +437,7 @@
       overflow:hidden;
       display:flex;
       flex-direction:column;
-      min-height: 3.7in; /* half of landscape letter usable height */
+      min-height: 3.7in;
     }
     .p-receipt-title{
       font-size:11px;
@@ -566,8 +563,8 @@
           </div>
 
           <p class="section-subtext" style="margin-top:10px;">
-            Export opens your device Print dialog. Choose “Save as PDF”.
-            Submit opens an email draft to timesheets@vistageomatics.com, attach the saved PDF, then send.
+            Export opens Print. Choose “Save as PDF”. Submit opens an email draft to timesheets@vistageomatics.com,
+            attach the saved PDF, then send.
           </p>
 
           <div class="status" id="statusBox"></div>
@@ -855,7 +852,6 @@
         </tr>
       `).join("");
 
-      // report page
       let html = `
         <div class="p-page">
           <div class="p-header">
@@ -914,7 +910,6 @@
         </div>
       `;
 
-      // receipt pages (2 per page)
       if (receiptDataUrls.length){
         for (let i = 0; i < receiptDataUrls.length; i += 2){
           const a = receiptDataUrls[i];
@@ -963,11 +958,9 @@
     }
 
     async function preparePrintLayout(){
-      // Ensure receipts cached (data URLs)
       if ((receiptPhotosInput.files || []).length && receiptDataUrls.length === 0){
         await rebuildReceiptPreviewAndCache();
       }
-      // Build print HTML (static, never clipped)
       printArea.innerHTML = buildPrintHTML();
     }
 
@@ -975,15 +968,13 @@
       clearStatus();
       try{
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
-
-        setStatus("Preparing export, then opening Print dialog…", "");
+        setStatus("Preparing export, then opening Print…", "");
         await preparePrintLayout();
 
-        // Let layout render before printing
         await new Promise(r => requestAnimationFrame(() => r()));
-        await new Promise(r => setTimeout(r, 50));
+        await new Promise(r => setTimeout(r, 80));
 
-        setStatus("Print dialog opened. Choose “Save as PDF”.", "ok");
+        setStatus("Print opened. Choose “Save as PDF”.", "ok");
         window.print();
       } catch(e){
         setStatus("Export failed, " + String(e), "bad");
@@ -1000,7 +991,7 @@
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
         const outName = sanitizeFilename(filenameEl.value) + ".pdf";
 
-        setStatus("Opening Print dialog, then email draft…", "");
+        setStatus("Opening Print, then email draft…", "");
         await exportViaPrint();
 
         const subject = `Expense Report Submission, ${employeeNameEl.value || "Employee"}, ${reportDateEl.value || ""}`;
@@ -1019,7 +1010,6 @@ Attach the saved PDF and send.
 
 Thanks,`;
 
-        // Small delay so iPad doesn't ignore mailto immediately after print
         setTimeout(() => {
           window.location.href = buildMailtoLink(subject, body);
           setStatus("Email draft opened. Attach the saved PDF, then send.", "ok");
@@ -1058,7 +1048,6 @@ Thanks,`;
       filenameEl.value = buildDefaultFilename();
     });
 
-    // Init
     (function init(){
       initRows();
       const today = new Date().toISOString().slice(0,10);
