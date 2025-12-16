@@ -19,6 +19,7 @@
       --danger:#b91c1c;
     }
     *{ box-sizing:border-box; }
+
     body{
       margin:0;
       padding:18px;
@@ -27,6 +28,7 @@
       background:radial-gradient(circle at top, #f4f8fc 0, #e4edf6 40%, #dde6f3 100%);
     }
     .page-wrap{ max-width:1400px; margin:0 auto; }
+
     .container{
       background:var(--bg-card);
       border-radius:18px;
@@ -99,6 +101,7 @@
       height:5px;
       background:linear-gradient(90deg, var(--vista-blue-light), var(--vista-blue-dark));
     }
+
     .section-title{
       display:inline-flex; align-items:center; gap:8px;
       font-weight:900;
@@ -159,7 +162,9 @@
       transform:translateY(-1px);
     }
 
+    /* Keep the table full-width without horizontal scrolling */
     .entries-wrap{ width:100%; overflow:hidden; }
+
     table{
       width:100%;
       border-collapse:collapse;
@@ -174,6 +179,7 @@
       padding:8px 8px;
       vertical-align:top;
       word-break:break-word;
+      overflow:visible;
     }
     th{
       background:linear-gradient(90deg, #e6f1fb, #dde9f7);
@@ -189,7 +195,15 @@
     .cell-tight{ padding:6px 7px; }
     td input, td textarea, td select{ width:100%; min-width:0; }
 
-    .money-input, .km-input{ text-align:right; font-variant-numeric:tabular-nums; }
+    .money-input, .km-input{
+      text-align:right;
+      font-variant-numeric:tabular-nums;
+    }
+
+    /* Remove spinner arrows on number inputs if any slip in */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
+    input[type=number]{ -moz-appearance:textfield; }
 
     .row-actions{
       display:flex;
@@ -275,8 +289,8 @@
       white-space:pre-wrap;
       line-height:1.35;
     }
-    .status.ok{ color:#065f46; }
-    .status.bad{ color:#b91c1c; }
+    .status.ok{ color:var(--ok); }
+    .status.bad{ color:var(--danger); }
 
     /* Receipts preview (screen) */
     #receiptPreview{
@@ -315,12 +329,12 @@
       user-select:none;
     }
 
-    /* Hidden export area (captured into PDF) */
+    /* Hidden export root (captured by html2canvas) */
     #exportRoot{
       position:fixed;
       left:-99999px;
       top:0;
-      width: 10.5in;          /* fixed “printable” width to prevent right cut-off */
+      width: 10.5in; /* fixed printable width to prevent right-side cut off */
       background:#fff;
       padding:12px;
     }
@@ -360,7 +374,14 @@
       padding:10px;
       background:#fff;
     }
-    .x-label{ font-size:10px; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
+    .x-label{
+      font-size:10px;
+      font-weight:900;
+      color:#4b5563;
+      text-transform:uppercase;
+      letter-spacing:0.05em;
+      margin-bottom:6px;
+    }
     .x-value{ font-size:12px; font-weight:800; color:#111827; word-break:break-word; }
     .x-note{ font-size:10px; color:#6b7280; margin:6px 0 0 0; font-weight:900; }
 
@@ -400,7 +421,6 @@
     }
     .x-totalbox .k{ font-size:9px; font-weight:900; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; }
     .x-totalbox .v{ margin-top:6px; font-size:12px; font-weight:900; color:#0b3045; }
-
     .x-footer{
       margin-top:8px;
       text-align:right;
@@ -480,7 +500,7 @@
         <div class="section">
           <div class="section-title">Receipts</div>
           <p class="section-subtext">
-            Photos only. PDF export will append receipts after the report, 2 per page, large and legible.
+            Photos only. Export will append receipts after the report, 2 per page, large and legible.
           </p>
 
           <div class="grid-2">
@@ -530,23 +550,10 @@
   <!-- Hidden export root (captured by html2canvas) -->
   <div id="exportRoot" aria-hidden="true"></div>
 
-  <!-- =========================
-       EMBED LIBS (PASTE HERE)
-       ========================= -->
+  <!-- REQUIRED LOCAL LIBS -->
+  <script src="./html2canvas.min.js"></script>
+  <script src="./jspdf.umd.min.js"></script>
 
-  <script>
- <script src="./html2canvas.min.js"></script>
-  */
-  </script>
-
-  <script>
-<script src="./jspdf.umd.min.js"></script>
-  */
-  </script>
-
-  <!-- =========================
-       APP LOGIC
-       ========================= -->
   <script>
     const VERSION = "1";
     const EMAIL_TO = "timesheets@vistageomatics.com";
@@ -615,6 +622,14 @@
       if (!el) return;
       el.style.height = "auto";
       el.style.height = Math.max(44, el.scrollHeight) + "px";
+    }
+    function esc(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
     }
 
     function deptSelect(){
@@ -744,7 +759,6 @@
         const img = new Image();
         img.onload = () => resolve({ w: img.naturalWidth || img.width, h: img.naturalHeight || img.height });
         img.onerror = () => reject(new Error("Could not load receipt image."));
-
         img.src = dataUrl;
       });
     }
@@ -806,15 +820,6 @@
         rows.push({ date, vendor, desc, sub, gst, total, deptText, km });
       });
       return rows;
-    }
-
-    function esc(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
     }
 
     function buildExportHTML(){
@@ -898,17 +903,15 @@
 
     function ensureLibsLoaded(){
       if (typeof html2canvas !== "function") {
-        throw new Error("html2canvas not loaded. Paste html2canvas.min.js into the script block.");
+        throw new Error("html2canvas not loaded. Confirm html2canvas.min.js is beside index.html.");
       }
-      const jspdfNs = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf : (window.jspdf && window.jspdf.default ? window.jspdf : null);
-      if (!jspdfNs || !jspdfNs.jsPDF) {
-        throw new Error("jsPDF not loaded. Paste jspdf.umd.min.js into the script block.");
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        throw new Error("jsPDF not loaded. Confirm jspdf.umd.min.js is beside index.html.");
       }
-      return jspdfNs.jsPDF;
+      return window.jspdf.jsPDF;
     }
 
     async function canvasToPagedPdf(pdf, canvas, marginPt){
-      // Letter landscape in points: 792 x 612
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
       const usableW = pageW - marginPt*2;
@@ -919,7 +922,6 @@
       const canvasW = canvas.width;
       const canvasH = canvas.height;
 
-      // scale to fit width
       const scale = usableW / canvasW;
       const scaledH = canvasH * scale;
 
@@ -928,24 +930,12 @@
         return;
       }
 
-      // Page slicing:
-      // We draw the same image multiple times with negative y offset to simulate cropping.
       let yOffset = 0;
       let pageIndex = 0;
 
       while (yOffset < scaledH - 1){
         if (pageIndex > 0) pdf.addPage();
-
-        // Place the full image but shifted up so the desired slice is visible
-        pdf.addImage(
-          imgData,
-          "JPEG",
-          marginPt,
-          marginPt - yOffset,
-          usableW,
-          scaledH
-        );
-
+        pdf.addImage(imgData, "JPEG", marginPt, marginPt - yOffset, usableW, scaledH);
         yOffset += usableH;
         pageIndex += 1;
       }
@@ -964,32 +954,24 @@
       const usableW = pageW - marginPt*2;
       const usableH = pageH - marginPt*2;
 
-      // 2 per page: top + bottom
       const gap = 10; // pt
-      const headerH = 0; // keep minimal for max image size
-      const slotH = (usableH - gap - headerH) / 2;
+      const slotH = (usableH - gap) / 2;
 
-      // New page for receipts
       pdf.addPage();
-
       let i = 0;
-      while (i < receiptDataUrls.length){
-        // If not first receipt page, we’re already on a clean page.
-        // For first, we are already on the page created above.
 
+      while (i < receiptDataUrls.length){
         for (let slot = 0; slot < 2; slot++){
           if (i >= receiptDataUrls.length) break;
 
           const r = receiptDataUrls[i];
-          const yTop = marginPt + headerH + (slot === 0 ? 0 : (slotH + gap));
+          const yTop = marginPt + (slot === 0 ? 0 : (slotH + gap));
 
-          // Put a small caption
           pdf.setFont("helvetica", "bold");
           pdf.setFontSize(10);
           const caption = `Receipt ${i+1}: ${r.name || "Receipt"}`;
           pdf.text(caption.length > 90 ? caption.slice(0, 90) + "…" : caption, marginPt, yTop + 12);
 
-          // Image box (below caption)
           const imgBoxY = yTop + 18;
           const imgBoxH = slotH - 22;
           const imgBoxW = usableW;
@@ -998,8 +980,6 @@
           const x = marginPt + (imgBoxW - fitted.w) / 2;
           const y = imgBoxY + (imgBoxH - fitted.h) / 2;
 
-          // r.dataUrl is already a data URL. Use JPEG for smaller PDFs if possible.
-          // If the data URL is PNG, jsPDF can still embed it, but size may be larger.
           const isPng = String(r.dataUrl).startsWith("data:image/png");
           pdf.addImage(r.dataUrl, isPng ? "PNG" : "JPEG", x, y, fitted.w, fitted.h);
 
@@ -1015,34 +995,28 @@
     async function generatePdfBlob(){
       const jsPDF = ensureLibsLoaded();
 
-      // Build export DOM
       exportRoot.innerHTML = buildExportHTML();
 
-      // Wait for logo to load in export root (important for canvas capture)
-      await new Promise((resolve) => setTimeout(resolve, 120));
+      // let the logo resolve for capture
+      await new Promise(r => setTimeout(r, 140));
 
-      // Capture export root into canvas
       setStatus("Rendering report into PDF…", "");
       const canvas = await html2canvas(exportRoot, {
         backgroundColor: "#ffffff",
-        scale: 2,                // sharper text
+        scale: 2,
         useCORS: true,
         logging: false,
         windowWidth: exportRoot.scrollWidth
       });
 
-      // Create PDF (Letter landscape)
       const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "letter" });
       const marginPt = 24;
 
-      // Add report pages
       await canvasToPagedPdf(pdf, canvas, marginPt);
 
-      // Add receipt pages (2 per page, bigger/legible)
       setStatus("Adding receipts (2 per page)…", "");
       await addReceiptPages(pdf, marginPt);
 
-      // Return Blob
       return pdf.output("blob");
     }
 
