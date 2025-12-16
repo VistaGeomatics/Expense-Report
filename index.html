@@ -7,19 +7,6 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
 
-  <!--
-    Self hosted, GitHub Pages friendly, place these files beside this index.html:
-
-    index.html
-    vista-geomatics.png
-    html2pdf.bundle.min.js
-    pdf.min.js
-    pdf.worker.min.js
-
-    This version exports Legal, Portrait, includes receipt images, includes receipt PDF pages rendered as images,
-    does not use pdf-lib, submit opens an email draft and you attach the exported PDF manually.
-  -->
-
   <style>
     :root{
       --vista-blue:#165f7d;
@@ -32,9 +19,7 @@
       --ok:#065f46;
       --danger:#b91c1c;
     }
-
     *{ box-sizing:border-box; }
-
     body{
       margin:0;
       padding:24px;
@@ -42,9 +27,7 @@
       color:var(--text-main);
       background:radial-gradient(circle at top, #f4f8fc 0, #e4edf6 40%, #dde6f3 100%);
     }
-
     .page-wrap{ max-width:1200px; margin:0 auto; }
-
     .container{
       background:var(--bg-card);
       border-radius:18px;
@@ -52,7 +35,6 @@
       overflow:hidden;
       position:relative;
     }
-
     .container::before{
       content:"";
       position:absolute;
@@ -61,7 +43,6 @@
       background:radial-gradient(circle at top right, rgba(22,95,125,0.18), transparent 55%);
       opacity:0.9;
     }
-
     .header-bar{
       position:relative;
       z-index:1;
@@ -73,14 +54,7 @@
       background:linear-gradient(120deg, var(--vista-blue-light) 0%, var(--vista-blue) 40%, var(--vista-blue-dark) 100%);
       color:#fff;
     }
-
-    .header-left{
-      z-index:1;
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-
+    .header-left{ z-index:1; display:flex; flex-direction:column; gap:4px; }
     .header-left h1{
       margin:0;
       font-family:"Montserrat", sans-serif;
@@ -90,16 +64,9 @@
       text-transform:uppercase;
       line-height:1.05;
     }
-
     .vista-bold{ font-weight:700; }
     .geomatics-regular{ font-weight:400; }
-
-    .header-left p{
-      margin:0;
-      font-size:0.96rem;
-      opacity:0.92;
-    }
-
+    .header-left p{ margin:0; font-size:0.96rem; opacity:0.92; }
     .header-logo{
       height:90px;
       width:auto;
@@ -125,21 +92,15 @@
       position:relative;
       overflow:hidden;
     }
-
     .section::before{
       content:"";
       position:absolute;
-      top:0;
-      left:0;
-      right:0;
+      top:0; left:0; right:0;
       height:5px;
       background:linear-gradient(90deg, var(--vista-blue-light), var(--vista-blue-dark));
     }
-
     .section-title{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+      display:inline-flex; align-items:center; gap:8px;
       font-weight:600;
       margin-bottom:6px;
       font-size:1.02rem;
@@ -149,27 +110,23 @@
       background:linear-gradient(90deg, rgba(22,95,125,0.09), rgba(11,48,69,0.05));
       box-shadow:0 0 0 1px rgba(22,95,125,0.12);
     }
-
     .section-subtext{
       font-size:0.82rem;
       color:var(--text-muted);
       margin:0 0 10px 0;
       line-height:1.35;
     }
-
     .grid-2{
       display:grid;
       grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
       gap:12px;
     }
-
     label{
       font-size:0.86rem;
       font-weight:600;
       display:block;
       margin-bottom:4px;
     }
-
     input[type="text"], input[type="date"], select, textarea{
       width:100%;
       min-width:0;
@@ -181,7 +138,6 @@
       font-family:inherit;
       line-height:1.15;
     }
-
     textarea{
       resize:none;
       min-height:44px;
@@ -190,7 +146,6 @@
       word-break:break-word;
       overflow:hidden;
     }
-
     input:focus, select:focus, textarea:focus{
       outline:none;
       border-color:var(--vista-blue-light);
@@ -200,7 +155,6 @@
     }
 
     .table-wrap{ overflow:auto; }
-
     table{
       width:100%;
       border-collapse:collapse;
@@ -211,7 +165,6 @@
       table-layout:fixed;
       min-width:1120px;
     }
-
     th, td{
       border:1px solid #d7e2f1;
       padding:8px 10px;
@@ -219,7 +172,6 @@
       word-break:break-word;
       overflow:visible;
     }
-
     th{
       background:linear-gradient(90deg, #e6f1fb, #dde9f7);
       text-align:left;
@@ -229,16 +181,10 @@
       color:#4b5563;
       white-space:nowrap;
     }
-
     tbody tr:nth-child(even){ background:#f7faff; }
-
     .cell-tight{ padding:6px 8px; }
     td input, td textarea, td select{ width:100%; min-width:0; }
-
-    .money-input, .km-input{
-      text-align:right;
-      font-variant-numeric:tabular-nums;
-    }
+    .money-input, .km-input{ text-align:right; font-variant-numeric:tabular-nums; }
 
     .row-actions{
       display:flex;
@@ -255,7 +201,6 @@
       align-items:end;
       margin-top:12px;
     }
-
     .totals-box{
       border:1px solid var(--border-soft);
       border-radius:12px;
@@ -263,7 +208,6 @@
       padding:12px;
       box-shadow:0 8px 18px rgba(5,41,66,0.06);
     }
-
     .totals-box .label{
       font-size:0.78rem;
       text-transform:uppercase;
@@ -272,7 +216,6 @@
       margin-bottom:6px;
       font-weight:700;
     }
-
     .totals-box .value{
       font-size:1.15rem;
       font-weight:800;
@@ -290,25 +233,21 @@
       text-transform:uppercase;
       transition:transform 0.12s ease, box-shadow 0.12s ease;
     }
-
     .btn-primary{
       background:linear-gradient(120deg, var(--vista-blue-light) 0%, var(--vista-blue) 40%, var(--vista-blue-dark) 100%);
       color:#fff;
       box-shadow:0 10px 24px rgba(5,41,66,0.45);
     }
-
     .btn-secondary{
       background:#f3f4f6;
       color:var(--text-main);
       border:1px solid #d4d7dd;
     }
-
     .btn-ghost{
       background:#fff;
       color:var(--vista-blue-dark);
       border:1px solid var(--border-soft);
     }
-
     .btn-primary:hover, .btn-secondary:hover, .btn-ghost:hover{
       transform:translateY(-1px);
       box-shadow:0 12px 26px rgba(5,41,66,0.18);
@@ -328,7 +267,6 @@
       white-space:pre-wrap;
       line-height:1.35;
     }
-
     .status.ok{ color:var(--ok); }
     .status.bad{ color:var(--danger); }
 
@@ -359,7 +297,6 @@
       flex-direction:column;
       gap:10px;
     }
-
     .receipt-card{
       border:1px solid #d6e2f0;
       border-radius:12px;
@@ -369,7 +306,6 @@
       page-break-after: always;
       break-after: page;
     }
-
     .receipt-caption{
       font-size:12px;
       font-weight:800;
@@ -377,30 +313,30 @@
       margin:2px 0 8px;
       word-break:break-word;
     }
-
     .receipt-img{
       width:100%;
       height:auto;
       display:block;
       border-radius:10px;
     }
-
     .receipt-note{
       font-size:0.85rem;
       color:var(--text-muted);
     }
 
-    /* Export sandbox fix, do not push offscreen, keep opacity 0 so canvas captures correct width */
+    /* CRITICAL EXPORT FIX:
+       Do NOT use opacity:0 (it makes the clone invisible to html2canvas).
+       Move off-screen with transform instead.
+    */
     #exportSandbox{
       position:fixed;
       left:0;
       top:0;
-      width:8.5in;         /* match US Letter width, Legal has same width */
-      height:auto;
-      opacity:0;
+      width:8.5in;
+      background:#fff;
       pointer-events:none;
-      background:#ffffff;
-      z-index:-1;
+      transform:translateX(-200vw);
+      z-index:0;
     }
 
     .export-mode form{ padding:16px 16px 12px; }
@@ -552,15 +488,9 @@
   <!-- Libraries (self hosted, no defer, iPad safe) -->
   <script src="html2pdf.bundle.min.js"></script>
   <script src="pdf.min.js"></script>
-  <script>
-    // Worker path fix, use absolute URL that includes the repo path
-    if (window.pdfjsLib) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdf.worker.min.js", window.location.href).href;
-    }
-  </script>
 
   <script>
-    const VERSION = "4.2";
+    const VERSION = "4.3";
     const EMAIL_TO = "timesheets@vistageomatics.com";
     const DEFAULT_ROWS = 3;
 
@@ -600,7 +530,6 @@
       if (kind) statusBox.classList.add(kind);
       statusBox.textContent = msg;
     }
-
     function clearStatus(){
       statusBox.style.display = "none";
       statusBox.textContent = "";
@@ -611,23 +540,19 @@
       const num = Number(n || 0);
       return num.toLocaleString(undefined, { style:"currency", currency:"CAD" });
     }
-
     function parseMoney(str){
       const clean = String(str ?? "").replace(/[^0-9.\-]/g, "");
       const n = Number(clean);
       return Number.isFinite(n) ? n : 0;
     }
-
     function sanitizeFilename(name){
       return String(name || "Expense Report").replace(/[\\\/:*?"<>|]+/g, " ").trim();
     }
-
     function buildDefaultFilename(){
       const name = (employeeNameEl.value || "").trim() || "Employee";
       const date = reportDateEl.value ? reportDateEl.value : new Date().toISOString().slice(0,10);
       return `Expense Report, ${name}, ${date}`;
     }
-
     function autoGrow(el){
       if (!el) return;
       el.style.height = "auto";
@@ -645,7 +570,6 @@
       `;
       return sel;
     }
-
     function moneyInput(){
       const input = document.createElement("input");
       input.type = "text";
@@ -655,14 +579,12 @@
       input.className = "money-input";
       return input;
     }
-
     function kmInput(){
       const input = document.createElement("input");
       input.type = "text";
       input.inputMode = "decimal";
       input.autocomplete = "off";
       input.placeholder = "";
-
       input.className = "km-input";
       return input;
     }
@@ -689,10 +611,7 @@
       const gst = moneyInput(); tdGst.appendChild(gst);
 
       const tdTotal = document.createElement("td"); tdTotal.className="cell-tight";
-      const total = moneyInput();
-      total.readOnly = true;
-      total.tabIndex = -1;
-      tdTotal.appendChild(total);
+      const total = moneyInput(); total.readOnly=true; total.tabIndex=-1; tdTotal.appendChild(total);
 
       const tdDept = document.createElement("td"); tdDept.className="cell-tight";
       const dept = deptSelect(); tdDept.appendChild(dept);
@@ -709,7 +628,6 @@
         total.value = (s + g).toFixed(2);
         recalcTotals();
       }
-
       sub.addEventListener("input", recalcRow);
       gst.addEventListener("input", recalcRow);
       km.addEventListener("input", recalcTotals);
@@ -726,10 +644,7 @@
     }
 
     function recalcTotals(){
-      let subSum = 0;
-      let gstSum = 0;
-      let grand = 0;
-      let kmSum = 0;
+      let subSum=0, gstSum=0, grand=0, kmSum=0;
 
       Array.from(tbody.querySelectorAll("tr")).forEach(tr => {
         const sub = tr.querySelector("td:nth-child(4) input");
@@ -742,10 +657,7 @@
         const t = parseMoney(tot?.value);
         const k = parseMoney(km?.value);
 
-        subSum += s;
-        gstSum += g;
-        grand += t;
-        kmSum += k;
+        subSum += s; gstSum += g; grand += t; kmSum += k;
       });
 
       subtotalSumEl.textContent = money(subSum);
@@ -756,7 +668,7 @@
 
     function initRows(){
       tbody.innerHTML = "";
-      for (let i = 0; i < DEFAULT_ROWS; i++) addRow();
+      for (let i=0; i<DEFAULT_ROWS; i++) addRow();
     }
 
     function buildPrintBlock(value, minH){
@@ -800,8 +712,6 @@
     async function renderAllPages(pdf, filename){
       for (let p = 1; p <= pdf.numPages; p++){
         const page = await pdf.getPage(p);
-
-        // balance readability and performance, 2 is usually good on iPad
         const viewport = page.getViewport({ scale: 2 });
 
         const canvas = document.createElement("canvas");
@@ -810,25 +720,22 @@
         canvas.height = viewport.height;
 
         await page.render({ canvasContext: ctx, viewport }).promise;
-
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
-        addReceiptCard(`${filename}, page ${p}`, dataUrl);
+        addReceiptCard(`${filename}, page ${p}`, canvas.toDataURL("image/jpeg", 0.92));
       }
     }
 
+    // WORKER-FREE PDF RENDERING FIX:
+    // Always disable worker so it NEVER tries to load pdf.worker.min.js.
     async function renderPdfFileToImages(file){
       if (!window.pdfjsLib) throw new Error("pdf.min.js did not load, PDF receipts cannot be rendered.");
-
       const buf = await file.arrayBuffer();
 
-      // Try with worker first, if the worker path is wrong or blocked, retry without worker.
-      try{
-        const pdf = await pdfjsLib.getDocument({ data: buf, disableWorker: false }).promise;
-        await renderAllPages(pdf, file.name);
-      } catch (e){
-        const pdf = await pdfjsLib.getDocument({ data: buf, disableWorker: true }).promise;
-        await renderAllPages(pdf, file.name);
-      }
+      const pdf = await pdfjsLib.getDocument({
+        data: buf,
+        disableWorker: true
+      }).promise;
+
+      await renderAllPages(pdf, file.name);
     }
 
     async function buildReceiptPages(){
@@ -848,13 +755,11 @@
 
       setStatus("Building receipt pages…", "");
 
-      // Receipt images
       for (const f of imgFiles){
         const url = URL.createObjectURL(f);
         addReceiptCard(f.name || "Receipt photo", url);
       }
 
-      // Receipt PDFs, rendered into images
       for (const f of pdfFiles){
         await renderPdfFileToImages(f);
       }
@@ -879,7 +784,7 @@
       source.style.maxWidth = "8.5in";
       source.style.margin = "0";
 
-      // Replace all inputs, selects, textareas with print blocks so nothing is cut off
+      // Replace inputs with blocks so text never gets cut off
       source.querySelectorAll("input, select, textarea").forEach(el => {
         if (el.tagName === "SELECT"){
           const opt = el.options[el.selectedIndex];
@@ -891,18 +796,15 @@
         }
       });
 
-      // Remove buttons in the clone
+      // Remove buttons/status from export
       source.querySelectorAll("button").forEach(b => b.remove());
-
-      // Remove status box in the clone
       const status = source.querySelector("#statusBox");
       if (status) status.remove();
 
-      // Set version footer
       const vf = source.querySelector("#versionFooter");
       if (vf) vf.textContent = "Version " + VERSION;
 
-      // Keep rows together where possible
+      // Encourage rows to stay together
       source.querySelectorAll("tr").forEach(tr => {
         tr.style.pageBreakInside = "avoid";
         tr.style.breakInside = "avoid";
@@ -944,7 +846,9 @@
           useCORS: true,
           logging: false,
           backgroundColor: "#ffffff",
-          windowWidth: 816 // 8.5in * 96dpi
+          windowWidth: 816,
+          scrollX: 0,
+          scrollY: 0
         },
         jsPDF:       { unit:"in", format:"legal", orientation:"portrait" },
         pagebreak:   { mode:["css","legacy"] }
@@ -964,6 +868,7 @@
       try{
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
 
+        // If receipts selected but not built, build automatically so export includes them
         const selectedReceipts = ((receiptPhotosInput.files || []).length + (receiptPdfsInput.files || []).length) > 0;
         const builtCards = receiptPreview.querySelectorAll(".receipt-card").length > 0;
         if (selectedReceipts && !builtCards){
@@ -1026,6 +931,7 @@ Thanks,`;
       }
     }
 
+    // Events
     addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
 
@@ -1048,6 +954,7 @@ Thanks,`;
       filenameEl.value = buildDefaultFilename();
     });
 
+    // Init
     (function init(){
       initRows();
       const today = new Date().toISOString().slice(0,10);
@@ -1060,9 +967,6 @@ Thanks,`;
         const issues = [];
         if (typeof window.html2pdf === "undefined") issues.push("Missing html2pdf.bundle.min.js, place it beside index.html.");
         if (!window.pdfjsLib) issues.push("Missing pdf.min.js, PDF receipts will not render.");
-        if (window.pdfjsLib && (!pdfjsLib.GlobalWorkerOptions || !pdfjsLib.GlobalWorkerOptions.workerSrc)) {
-          issues.push("pdf.worker.min.js may be missing or misnamed, PDF receipts may render slower using fallback.");
-        }
         if (issues.length) setStatus(issues.join("\n"), "bad");
       }, 400);
     })();
