@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -28,6 +28,7 @@
       color:var(--text-main);
       background:radial-gradient(circle at top, #f4f8fc 0, #e4edf6 40%, #dde6f3 100%);
     }
+
     .page-wrap{ max-width:1400px; margin:0 auto; }
 
     .container{
@@ -70,6 +71,7 @@
     .vista-bold{ font-weight:700; }
     .geomatics-regular{ font-weight:400; }
     .header-left p{ margin:0; font-size:0.95rem; opacity:0.92; }
+
     .header-logo{
       height:78px;
       width:auto;
@@ -102,6 +104,7 @@
       height:5px;
       background:linear-gradient(90deg, var(--vista-blue-light), var(--vista-blue-dark));
     }
+
     .section-title{
       display:inline-flex; align-items:center; gap:8px;
       font-weight:900;
@@ -113,6 +116,7 @@
       background:linear-gradient(90deg, rgba(22,95,125,0.09), rgba(11,48,69,0.05));
       box-shadow:0 0 0 1px rgba(22,95,125,0.12);
     }
+
     .section-subtext{
       font-size:0.82rem;
       color:var(--text-muted);
@@ -135,6 +139,7 @@
       display:block;
       margin-bottom:4px;
     }
+
     input[type="text"], input[type="date"], select, textarea{
       width:100%;
       min-width:0;
@@ -146,6 +151,7 @@
       font-family:inherit;
       line-height:1.15;
     }
+
     textarea{
       resize:none;
       min-height:44px;
@@ -154,6 +160,7 @@
       word-break:break-word;
       overflow:hidden;
     }
+
     input:focus, select:focus, textarea:focus{
       outline:none;
       border-color:var(--vista-blue-light);
@@ -162,7 +169,7 @@
       transform:translateY(-1px);
     }
 
-    /* On-screen table */
+    /* On-screen entries table */
     .entries-wrap{ width:100%; overflow:hidden; }
     table{
       width:100%;
@@ -320,18 +327,29 @@
       user-select:none;
     }
 
-    /* ====== PRINT / PDF LAYOUT ====== */
+    /* ===== PRINT / PDF LAYOUT (FIXED WIDTH TO PREVENT RIGHT CLIP) ===== */
     #printArea{ display:none; }
 
     @media print{
-      @page { size: letter landscape; margin: 0.4in; }
-      body{ background:#fff; padding:0; }
-      .page-wrap{ max-width:none; }
-      .container{ box-shadow:none; border-radius:0; }
+      /* reduce margins to gain width */
+      @page { size: letter landscape; margin: 0.25in; }
+
+      html, body{
+        background:#fff !important;
+        padding:0 !important;
+        margin:0 !important;
+      }
+
       #appArea{ display:none !important; }
       #printArea{ display:block !important; }
 
-      /* avoid browser clipping */
+      /* hard clamp printable width to avoid right-side cut in some print engines (esp. iOS) */
+      .print-fit{
+        width: 10.5in;      /* 11in minus 0.5in total page margins */
+        max-width: 10.5in;
+        margin: 0 auto;
+      }
+
       *{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
 
@@ -341,50 +359,51 @@
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:12px;
-      padding:10px 12px;
+      gap:10px;
+      padding:8px 10px;
       border:1px solid #d6e2f0;
       border-radius:12px;
-      background:linear-gradient(120deg, rgba(42,127,163,0.18), rgba(22,95,125,0.10));
-      margin-bottom:10px;
+      background:linear-gradient(120deg, rgba(42,127,163,0.16), rgba(22,95,125,0.08));
+      margin-bottom:8px;
     }
     .p-title{
       font-family:"Montserrat", sans-serif;
       font-weight:700;
       letter-spacing:0.08em;
       text-transform:uppercase;
-      font-size:16px;
+      font-size:15px;
       margin:0;
       color:#0b3045;
     }
-    .p-subtitle{ margin:2px 0 0 0; color:#374151; font-size:12px; font-weight:700; }
-    .p-logo{ height:44px; width:auto; }
+    .p-subtitle{ margin:2px 0 0 0; color:#374151; font-size:11px; font-weight:700; }
+    .p-logo{ height:40px; width:auto; }
 
     .p-meta{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:10px;
-      margin-bottom:10px;
+      gap:8px;
+      margin-bottom:8px;
     }
     .p-box{
       border:1px solid #d6e2f0;
       border-radius:12px;
-      padding:10px;
+      padding:8px;
       background:#fff;
     }
-    .p-label{ font-size:11px; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
-    .p-value{ font-size:13px; font-weight:800; color:#111827; word-break:break-word; }
-    .p-note{ font-size:11px; color:#6b7280; margin:6px 0 0 0; font-weight:700; }
+    .p-label{ font-size:10px; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:5px; }
+    .p-value{ font-size:12px; font-weight:800; color:#111827; word-break:break-word; }
+    .p-note{ font-size:10px; color:#6b7280; margin:6px 0 0 0; font-weight:800; }
 
+    /* PRINT TABLE: tighter padding + smaller fonts + column plan that fits */
     .p-table{
       width:100%;
       border-collapse:collapse;
       table-layout:fixed;
-      font-size:11px;
+      font-size:10px;      /* smaller to fit all columns */
     }
     .p-table th, .p-table td{
       border:1px solid #d7e2f1;
-      padding:6px 6px;
+      padding:5px 5px;     /* tighter */
       vertical-align:top;
       word-break:break-word;
     }
@@ -393,57 +412,60 @@
       color:#374151;
       text-transform:uppercase;
       letter-spacing:0.04em;
-      font-size:10px;
-      white-space:nowrap; /* keeps headers stable */
+      font-size:9px;
+      white-space:nowrap;
     }
-    /* Critical: date + department never shrink/cut */
-    .p-nowrap{ white-space:nowrap; word-break:normal; overflow-wrap:normal; }
+    .p-nowrap{
+      white-space:nowrap;
+      word-break:normal;
+      overflow-wrap:normal;
+    }
 
     .p-totals{
-      margin-top:10px;
+      margin-top:8px;
       display:grid;
       grid-template-columns: repeat(4, 1fr);
-      gap:10px;
+      gap:8px;
     }
     .p-totalbox{
       border:1px solid #d6e2f0;
       border-radius:12px;
-      padding:10px;
+      padding:8px;
       background:#fff;
     }
-    .p-totalbox .k{ font-size:10px; font-weight:900; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; }
-    .p-totalbox .v{ margin-top:6px; font-size:13px; font-weight:900; color:#0b3045; }
+    .p-totalbox .k{ font-size:9px; font-weight:900; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; }
+    .p-totalbox .v{ margin-top:5px; font-size:12px; font-weight:900; color:#0b3045; }
 
     .p-footer{
-      margin-top:8px;
+      margin-top:6px;
       text-align:right;
       font-size:10px;
       color:#6b7280;
-      font-weight:800;
+      font-weight:900;
     }
 
-    /* Print receipts: 2 per page */
+    /* RECEIPTS: 2 per page but bigger */
     .p-receipts-page{ page-break-after: always; }
     .p-receipts-grid{
       display:grid;
       grid-template-rows: 1fr 1fr;
-      gap:10px;
+      gap:8px;
     }
     .p-receipt{
       border:1px solid #d6e2f0;
       border-radius:12px;
-      padding:10px;
+      padding:8px;            /* less padding = bigger image area */
       background:#fff;
       overflow:hidden;
       display:flex;
       flex-direction:column;
-      min-height: 3.7in;
+      min-height: 4.05in;     /* bigger than before for readability */
     }
     .p-receipt-title{
-      font-size:11px;
+      font-size:10px;
       font-weight:900;
       color:#374151;
-      margin:0 0 8px 0;
+      margin:0 0 6px 0;
       word-break:break-word;
     }
     .p-receipt-img{
@@ -453,7 +475,7 @@
       border:1px solid #e5eef9;
       object-fit:contain;
       flex:1 1 auto;
-      max-height: 3.1in;
+      max-height: 3.70in;     /* larger image */
     }
   </style>
 </head>
@@ -528,7 +550,7 @@
         <div class="section">
           <div class="section-title">Receipts</div>
           <p class="section-subtext">
-            Photos only. Export will include receipts after the report, 2 per page.
+            Photos only. Export will include receipts after the report, 2 per page (larger for readability).
           </p>
 
           <div class="grid-2">
@@ -800,7 +822,7 @@
         receiptPreview.appendChild(card);
       }
 
-      setStatus("Receipts ready. Export will include them, 2 per page.", "ok");
+      setStatus("Receipts ready. Export will include them bigger, 2 per page.", "ok");
     }
 
     function clearReceipts(){
@@ -828,6 +850,24 @@
       return rows;
     }
 
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function receiptBlockHTML(num, receipt){
+      return `
+        <div class="p-receipt">
+          <p class="p-receipt-title">Receipt ${num}, ${escapeHtml(receipt.name || "Receipt")}</p>
+          <img class="p-receipt-img" src="${receipt.dataUrl}" alt="Receipt ${num}" />
+        </div>
+      `;
+    }
+
     function buildPrintHTML(){
       const employee = (employeeNameEl.value || "").trim();
       const reportDate = (reportDateEl.value || "").trim();
@@ -853,60 +893,63 @@
       `).join("");
 
       let html = `
-        <div class="p-page">
-          <div class="p-header">
-            <div>
-              <p class="p-title">VISTA GEOMATICS</p>
-              <p class="p-subtitle">Employee Out of Pocket Expense Report</p>
+        <div class="print-fit">
+          <div class="p-page">
+            <div class="p-header">
+              <div>
+                <p class="p-title">VISTA GEOMATICS</p>
+                <p class="p-subtitle">Employee Out of Pocket Expense Report</p>
+              </div>
+              <img class="p-logo" src="vista-geomatics.png" alt="Vista Geomatics" />
             </div>
-            <img class="p-logo" src="vista-geomatics.png" alt="Vista Geomatics" />
-          </div>
 
-          <div class="p-meta">
-            <div class="p-box">
-              <div class="p-label">Name</div>
-              <div class="p-value">${escapeHtml(employee)}</div>
+            <div class="p-meta">
+              <div class="p-box">
+                <div class="p-label">Name</div>
+                <div class="p-value">${escapeHtml(employee)}</div>
+              </div>
+              <div class="p-box">
+                <div class="p-label">Report Date</div>
+                <div class="p-value p-nowrap">${escapeHtml(reportDate)}</div>
+              </div>
             </div>
-            <div class="p-box">
-              <div class="p-label">Report Date</div>
-              <div class="p-value p-nowrap">${escapeHtml(reportDate)}</div>
+
+            <div class="p-box" style="margin-bottom:8px;">
+              <div class="p-label">Department Codes</div>
+              <div class="p-value" style="font-size:11px;">
+                Municipal 100, Oil and Gas 200, Office 300, Construction 400
+              </div>
+              <p class="p-note">File name, ${escapeHtml(fileName)}.pdf</p>
             </div>
-          </div>
 
-          <div class="p-box" style="margin-bottom:10px;">
-            <div class="p-label">Department Codes</div>
-            <div class="p-value" style="font-size:12px;">
-              Municipal 100, Oil and Gas 200, Office 300, Construction 400
+            <table class="p-table">
+              <thead>
+                <tr>
+                  <!-- Width plan sums to 100% and fits 10.5in content -->
+                  <th style="width:9%;">Date</th>
+                  <th style="width:12%;">Vendor</th>
+                  <th style="width:28%;">Item Description</th>
+                  <th style="width:8%;">Subtotal</th>
+                  <th style="width:7%;">GST</th>
+                  <th style="width:8%;">Total</th>
+                  <th style="width:18%;">Department</th>
+                  <th style="width:10%;">Personal KM</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${reportRowsHTML || `<tr><td colspan="8" style="color:#6b7280; font-weight:900;">No expense entries.</td></tr>`}
+              </tbody>
+            </table>
+
+            <div class="p-totals">
+              <div class="p-totalbox"><div class="k">Subtotal Total</div><div class="v">${escapeHtml(subtotalTotal)}</div></div>
+              <div class="p-totalbox"><div class="k">GST Total</div><div class="v">${escapeHtml(gstTotal)}</div></div>
+              <div class="p-totalbox"><div class="k">Grand Total</div><div class="v">${escapeHtml(grandTotal)}</div></div>
+              <div class="p-totalbox"><div class="k">Personal KM Total</div><div class="v">${escapeHtml(kmTotal)}</div></div>
             </div>
-            <p class="p-note">File name, ${escapeHtml(fileName)}.pdf</p>
+
+            <div class="p-footer">Version ${VERSION}</div>
           </div>
-
-          <table class="p-table">
-            <thead>
-              <tr>
-                <th style="width:10%;">Date</th>
-                <th style="width:14%;">Vendor</th>
-                <th style="width:30%;">Item Description</th>
-                <th style="width:9%;">Subtotal</th>
-                <th style="width:7%;">GST</th>
-                <th style="width:9%;">Total</th>
-                <th style="width:13%;">Department</th>
-                <th style="width:8%;">Personal KM</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${reportRowsHTML || `<tr><td colspan="8" style="color:#6b7280; font-weight:800;">No expense entries.</td></tr>`}
-            </tbody>
-          </table>
-
-          <div class="p-totals">
-            <div class="p-totalbox"><div class="k">Subtotal Total</div><div class="v">${escapeHtml(subtotalTotal)}</div></div>
-            <div class="p-totalbox"><div class="k">GST Total</div><div class="v">${escapeHtml(gstTotal)}</div></div>
-            <div class="p-totalbox"><div class="k">Grand Total</div><div class="v">${escapeHtml(grandTotal)}</div></div>
-            <div class="p-totalbox"><div class="k">Personal KM Total</div><div class="v">${escapeHtml(kmTotal)}</div></div>
-          </div>
-
-          <div class="p-footer">Version ${VERSION}</div>
         </div>
       `;
 
@@ -916,45 +959,29 @@
           const b = receiptDataUrls[i + 1];
 
           html += `
-            <div class="p-receipts-page">
-              <div class="p-header" style="margin-bottom:10px;">
-                <div>
-                  <p class="p-title">Receipts</p>
-                  <p class="p-subtitle">Two per page</p>
+            <div class="print-fit">
+              <div class="p-receipts-page">
+                <div class="p-header" style="margin-bottom:8px;">
+                  <div>
+                    <p class="p-title">Receipts</p>
+                    <p class="p-subtitle">Two per page (larger)</p>
+                  </div>
+                  <img class="p-logo" src="vista-geomatics.png" alt="Vista Geomatics" />
                 </div>
-                <img class="p-logo" src="vista-geomatics.png" alt="Vista Geomatics" />
-              </div>
 
-              <div class="p-receipts-grid">
-                ${receiptBlockHTML(i + 1, a)}
-                ${b ? receiptBlockHTML(i + 2, b) : `<div class="p-receipt" style="opacity:0.35;"><p class="p-receipt-title">Blank</p></div>`}
-              </div>
+                <div class="p-receipts-grid">
+                  ${receiptBlockHTML(i + 1, a)}
+                  ${b ? receiptBlockHTML(i + 2, b) : `<div class="p-receipt" style="opacity:0.35;"><p class="p-receipt-title">Blank</p></div>`}
+                </div>
 
-              <div class="p-footer">Version ${VERSION}</div>
+                <div class="p-footer">Version ${VERSION}</div>
+              </div>
             </div>
           `;
         }
       }
 
       return html;
-    }
-
-    function receiptBlockHTML(num, receipt){
-      return `
-        <div class="p-receipt">
-          <p class="p-receipt-title">Receipt ${num}, ${escapeHtml(receipt.name || "Receipt")}</p>
-          <img class="p-receipt-img" src="${receipt.dataUrl}" alt="Receipt ${num}" />
-        </div>
-      `;
-    }
-
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
     }
 
     async function preparePrintLayout(){
@@ -970,10 +997,8 @@
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
         setStatus("Preparing export, then opening Print…", "");
         await preparePrintLayout();
-
-        await new Promise(r => requestAnimationFrame(() => r()));
-        await new Promise(r => setTimeout(r, 80));
-
+        await new Promise(r => requestAnimationFrame(r));
+        await new Promise(r => setTimeout(r, 120));
         setStatus("Print opened. Choose “Save as PDF”.", "ok");
         window.print();
       } catch(e){
@@ -1013,24 +1038,20 @@ Thanks,`;
         setTimeout(() => {
           window.location.href = buildMailtoLink(subject, body);
           setStatus("Email draft opened. Attach the saved PDF, then send.", "ok");
-        }, 400);
-
+        }, 500);
       } catch(e){
         setStatus("Submit failed, " + String(e), "bad");
       }
     }
 
-    // Events
+    // UI wiring
     addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
 
     receiptPhotosInput.addEventListener("change", async () => {
       clearStatus();
-      try{
-        await rebuildReceiptPreviewAndCache();
-      } catch(e){
-        setStatus("Receipt load failed, " + String(e), "bad");
-      }
+      try{ await rebuildReceiptPreviewAndCache(); }
+      catch(e){ setStatus("Receipt load failed, " + String(e), "bad"); }
     });
 
     clearReceiptsBtn.addEventListener("click", clearReceipts);
@@ -1048,6 +1069,7 @@ Thanks,`;
       filenameEl.value = buildDefaultFilename();
     });
 
+    // init
     (function init(){
       initRows();
       const today = new Date().toISOString().slice(0,10);
