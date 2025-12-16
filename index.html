@@ -105,6 +105,7 @@
       height:5px;
       background:linear-gradient(90deg, var(--vista-blue-light), var(--vista-blue-dark));
     }
+
     .section-title{
       display:inline-flex; align-items:center; gap:8px;
       font-weight:900;
@@ -116,6 +117,7 @@
       background:linear-gradient(90deg, rgba(22,95,125,0.09), rgba(11,48,69,0.05));
       box-shadow:0 0 0 1px rgba(22,95,125,0.12);
     }
+
     .section-subtext{
       font-size:0.82rem;
       color:var(--text-muted);
@@ -168,7 +170,7 @@
       transform:translateY(-1px);
     }
 
-    /* Landscape entries area: no sideways scrolling */
+    /* Entry table, no sideways scrolling needed */
     .entries-landscape{ width:100%; overflow:hidden; }
 
     table{
@@ -204,11 +206,13 @@
     .cell-tight{ padding:6px 7px; }
     td input, td textarea, td select{ width:100%; min-width:0; }
 
-    .money-input, .km-input{ text-align:right; font-variant-numeric:tabular-nums; }
+    .money-input, .km-input{
+      text-align:right;
+      font-variant-numeric:tabular-nums;
+    }
 
-    /* Prevent date/department from clipping */
+    /* Keep date and department readable */
     .no-wrap{ white-space:nowrap; }
-    select{ max-width:100%; }
 
     .row-actions{
       display:flex;
@@ -319,7 +323,7 @@
       user-select:none;
     }
 
-    /* On-screen receipt preview grid */
+    /* On-screen receipt preview */
     #receiptPreview{
       margin-top:12px;
       display:grid;
@@ -347,31 +351,33 @@
       border-radius:10px;
     }
 
-    /* Export sandbox: keep on-screen (prevents cropping), but effectively invisible */
+    /* Export sandbox, must be on-screen-ish to avoid capture cropping */
     #exportSandbox{
       position:fixed;
-      inset:0;
+      left:0;
+      top:0;
+      width:1px;
+      height:1px;
       pointer-events:none;
-      opacity:0.01;     /* NOT 0, avoids blank capture */
-      z-index:-1;       /* behind everything */
-      overflow:auto;
+      opacity:0.01;     /* not 0, avoids blank capture */
+      z-index:-1;
+      overflow:visible;
       background:transparent;
     }
 
     /* Export mode tweaks */
+    .export-mode .container{ box-shadow:none; }
     .export-mode form{ padding:14px 14px 10px; }
     .export-mode .section{ box-shadow:none; }
     .export-mode .header-logo{ height:58px; }
     .export-mode .header-left h1{ font-size:1.15rem; }
     .export-mode .section-title{ font-size:0.90rem; }
-
-    /* Export table sizing: keep Date + Department readable */
     .export-mode table{ font-size:0.70rem; }
     .export-mode th{ font-size:0.60rem; }
     .export-mode th, .export-mode td{ padding:6px 6px; }
     .export-mode .no-wrap{ white-space:nowrap; }
 
-    /* Export receipts: 2 per page (stacked) */
+    /* Receipts in export, 2 per page, stacked */
     .export-receipts{
       page-break-before:always;
       break-before:page;
@@ -445,14 +451,14 @@
             <table id="expenseTable">
               <thead>
                 <tr>
-                  <th style="width:10%;">Date</th>
+                  <th class="no-wrap" style="width:10%;">Date</th>
                   <th style="width:13%;">Vendor</th>
                   <th style="width:33%;">Item Description</th>
-                  <th style="width:9%;">Subtotal</th>
-                  <th style="width:8%;">GST</th>
-                  <th style="width:9%;">Total</th>
-                  <th style="width:10%;">Department</th>
-                  <th style="width:8%;">Personal KM</th>
+                  <th class="no-wrap" style="width:9%;">Subtotal</th>
+                  <th class="no-wrap" style="width:8%;">GST</th>
+                  <th class="no-wrap" style="width:9%;">Total</th>
+                  <th class="no-wrap" style="width:10%;">Department</th>
+                  <th class="no-wrap" style="width:8%;">Personal KM</th>
                 </tr>
               </thead>
               <tbody id="expenseTbody"></tbody>
@@ -526,7 +532,7 @@
   <script src="html2pdf.bundle.min.js"></script>
 
   <script>
-    const VERSION = "5.2";
+    const VERSION = "6.0";
     const EMAIL_TO = "timesheets@vistageomatics.com";
     const DEFAULT_ROWS = 3;
 
@@ -558,7 +564,7 @@
 
     versionFooter.textContent = "Version " + VERSION;
 
-    // Cached receipt Data URLs for export reliability
+    // Cached receipt Data URLs for reliable export
     let receiptDataUrls = []; // [{name, dataUrl}]
 
     function setStatus(msg, kind){
@@ -590,6 +596,7 @@
       const date = reportDateEl.value ? reportDateEl.value : new Date().toISOString().slice(0,10);
       return `Expense Report, ${name}, ${date}`;
     }
+
     function autoGrow(el){
       if (!el) return;
       el.style.height = "auto";
@@ -605,6 +612,7 @@
         <option value="300">Office 300</option>
         <option value="400">Construction 400</option>
       `;
+      sel.classList.add("no-wrap");
       return sel;
     }
 
@@ -656,9 +664,7 @@
       const total = moneyInput(); total.readOnly=true; total.tabIndex=-1; tdTotal.appendChild(total);
 
       const tdDept = document.createElement("td"); tdDept.className="cell-tight";
-      const dept = deptSelect();
-      dept.classList.add("no-wrap");
-      tdDept.appendChild(dept);
+      const dept = deptSelect(); tdDept.appendChild(dept);
 
       const tdKm = document.createElement("td"); tdKm.className="cell-tight";
       const km = kmInput(); tdKm.appendChild(km);
@@ -773,68 +779,6 @@
       setStatus("Receipts cleared.", "ok");
     }
 
-    function cloneForPdf(){
-      const source = document.getElementById("reportArea").cloneNode(true);
-      source.classList.add("export-mode");
-
-      // Force page width to match Legal landscape content area (14in wide, minus margins)
-      // We'll target 13.5in usable width.
-      source.style.width = "13.5in";
-      source.style.maxWidth = "13.5in";
-      source.style.margin = "0";
-      source.style.boxShadow = "none";
-
-      // Replace inputs/selects/textareas with print blocks (prevents cut-off)
-      source.querySelectorAll("input, select, textarea").forEach(el => {
-        if (el.tagName === "SELECT"){
-          const opt = el.options[el.selectedIndex];
-          el.replaceWith(buildPrintBlock(opt ? opt.textContent : "", "34px", true));
-        } else if (el.tagName === "TEXTAREA"){
-          el.replaceWith(buildPrintBlock(el.value || "", "56px", false));
-        } else {
-          // Keep dates in one line
-          const isDate = (el.getAttribute("type") || "").toLowerCase() === "date";
-          el.replaceWith(buildPrintBlock(el.value || "", "34px", isDate));
-        }
-      });
-
-      // Remove buttons/status from export
-      source.querySelectorAll("button").forEach(b => b.remove());
-      const status = source.querySelector("#statusBox");
-      if (status) status.remove();
-
-      // Clear on-screen receipt preview in the report portion
-      const preview = source.querySelector("#receiptPreview");
-      if (preview) preview.innerHTML = "";
-
-      // Version footer
-      const vf = source.querySelector("#versionFooter");
-      if (vf) vf.textContent = "Version " + VERSION;
-
-      // Append receipt pages: 2 per page stacked
-      if (receiptDataUrls.length){
-        const wrap = document.createElement("div");
-        wrap.className = "export-receipts";
-
-        for (let i = 0; i < receiptDataUrls.length; i += 2){
-          const sheet = document.createElement("div");
-          sheet.className = "receipt-sheet";
-
-          const a = receiptDataUrls[i];
-          sheet.appendChild(makeReceiptSlot(i + 1, a));
-
-          const b = receiptDataUrls[i + 1];
-          if (b) sheet.appendChild(makeReceiptSlot(i + 2, b));
-
-          wrap.appendChild(sheet);
-        }
-
-        source.appendChild(wrap);
-      }
-
-      return source;
-    }
-
     function makeReceiptSlot(num, receipt){
       const slot = document.createElement("div");
       slot.className = "receipt-slot";
@@ -852,6 +796,68 @@
       return slot;
     }
 
+    function cloneForPdf(){
+      const src = document.getElementById("reportArea").cloneNode(true);
+
+      // Wrap in export-mode container
+      const exportWrap = document.createElement("div");
+      exportWrap.className = "export-mode";
+      exportWrap.appendChild(src);
+
+      // Set a stable width for Letter landscape content (minus margins)
+      // Letter landscape is 11in wide, we use 10.4in for safe margins.
+      src.style.width = "10.4in";
+      src.style.maxWidth = "10.4in";
+      src.style.margin = "0";
+      src.style.boxShadow = "none";
+
+      // Replace interactive fields with print blocks
+      src.querySelectorAll("input, select, textarea").forEach(el => {
+        if (el.tagName === "SELECT"){
+          const opt = el.options[el.selectedIndex];
+          el.replaceWith(buildPrintBlock(opt ? opt.textContent : "", "34px", true));
+        } else if (el.tagName === "TEXTAREA"){
+          el.replaceWith(buildPrintBlock(el.value || "", "56px", false));
+        } else {
+          const isDate = (el.getAttribute("type") || "").toLowerCase() === "date";
+          el.replaceWith(buildPrintBlock(el.value || "", "34px", isDate));
+        }
+      });
+
+      // Remove buttons and status from export
+      src.querySelectorAll("button").forEach(b => b.remove());
+      const status = src.querySelector("#statusBox");
+      if (status) status.remove();
+
+      // Clear on-screen preview in report portion
+      const preview = src.querySelector("#receiptPreview");
+      if (preview) preview.innerHTML = "";
+
+      // Version footer
+      const vf = src.querySelector("#versionFooter");
+      if (vf) vf.textContent = "Version " + VERSION;
+
+      // Append receipts, 2 per page, stacked
+      if (receiptDataUrls.length){
+        const wrap = document.createElement("div");
+        wrap.className = "export-receipts";
+
+        for (let i = 0; i < receiptDataUrls.length; i += 2){
+          const sheet = document.createElement("div");
+          sheet.className = "receipt-sheet";
+
+          sheet.appendChild(makeReceiptSlot(i + 1, receiptDataUrls[i]));
+          if (receiptDataUrls[i + 1]) sheet.appendChild(makeReceiptSlot(i + 2, receiptDataUrls[i + 1]));
+
+          wrap.appendChild(sheet);
+        }
+
+        src.appendChild(wrap);
+      }
+
+      return exportWrap;
+    }
+
     async function waitForImages(root){
       const imgs = Array.from(root.querySelectorAll("img"));
       await Promise.all(imgs.map(async img => {
@@ -863,9 +869,9 @@
       }));
     }
 
-    async function exportReportPdfBlobLegalLandscape(){
+    async function exportReportPdfBlobLetterLandscape(){
       if (typeof window.html2pdf === "undefined") {
-        throw new Error("html2pdf.bundle.min.js did not load, export cannot run.");
+        throw new Error("html2pdf.bundle.min.js did not load");
       }
 
       exportSandbox.innerHTML = "";
@@ -876,28 +882,27 @@
       await new Promise(requestAnimationFrame);
       await new Promise(requestAnimationFrame);
 
-      // Measure exact clone size to prevent cropping
-      const w = Math.ceil(clone.scrollWidth);
-      const h = Math.ceil(clone.scrollHeight);
+      // Measure actual size to prevent cropping
+      const widthPx  = Math.ceil(clone.scrollWidth);
+      const heightPx = Math.ceil(clone.scrollHeight);
 
       const opt = {
-        margin:      [0.25, 0.25, 0.25, 0.25],
-        filename:    "temp.pdf",
-        image:       { type:"jpeg", quality:0.96 },
+        margin: 0.3,
+        image: { type:"jpeg", quality:0.96 },
         html2canvas: {
           scale: 2,
+          backgroundColor: "#ffffff",
           useCORS: true,
           logging: false,
-          backgroundColor: "#ffffff",
           scrollX: 0,
           scrollY: 0,
-          windowWidth: w,
-          windowHeight: h,
-          width: w,
-          height: h
+          windowWidth: widthPx,
+          windowHeight: heightPx,
+          width: widthPx,
+          height: heightPx
         },
-        jsPDF:       { unit:"in", format:"legal", orientation:"landscape" },
-        pagebreak:   { mode:["css","legacy"] }
+        jsPDF: { unit:"in", format:"letter", orientation:"landscape" },
+        pagebreak: { mode:["css","legacy"] }
       };
 
       const worker = window.html2pdf().set(opt).from(clone).toPdf();
@@ -918,8 +923,8 @@
           await rebuildReceiptPreviewAndCache();
         }
 
-        setStatus("Exporting PDF, Legal size, Landscape…", "");
-        const blob = await exportReportPdfBlobLegalLandscape();
+        setStatus("Exporting PDF, Letter size, Landscape…", "");
+        const blob = await exportReportPdfBlobLetterLandscape();
 
         const outName = sanitizeFilename(filenameEl.value) + ".pdf";
         const url = URL.createObjectURL(blob);
@@ -931,7 +936,7 @@
         a.click();
         a.remove();
 
-        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
         setStatus("PDF exported.", "ok");
         return outName;
       } catch(e){
@@ -961,7 +966,7 @@ Report Date: ${reportDateEl.value || ""}
 File Name: ${outName}
 Form Version: ${VERSION}
 
-Next step:
+Next step,
 Attach the exported PDF and send.
 
 Thanks,`;
