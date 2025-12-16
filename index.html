@@ -19,9 +19,7 @@
       --ok:#065f46;
       --danger:#b91c1c;
     }
-
     *{ box-sizing:border-box; }
-
     body{
       margin:0;
       padding:18px;
@@ -29,9 +27,7 @@
       color:var(--text-main);
       background:radial-gradient(circle at top, #f4f8fc 0, #e4edf6 40%, #dde6f3 100%);
     }
-
     .page-wrap{ max-width:1400px; margin:0 auto; }
-
     .container{
       background:var(--bg-card);
       border-radius:18px;
@@ -39,7 +35,6 @@
       overflow:hidden;
       position:relative;
     }
-
     .container::before{
       content:"";
       position:absolute;
@@ -48,7 +43,6 @@
       background:radial-gradient(circle at top right, rgba(22,95,125,0.18), transparent 55%);
       opacity:0.9;
     }
-
     .header-bar{
       position:relative;
       z-index:1;
@@ -60,7 +54,6 @@
       background:linear-gradient(120deg, var(--vista-blue-light) 0%, var(--vista-blue) 40%, var(--vista-blue-dark) 100%);
       color:#fff;
     }
-
     .header-left{ z-index:1; display:flex; flex-direction:column; gap:4px; }
     .header-left h1{
       margin:0;
@@ -74,7 +67,6 @@
     .vista-bold{ font-weight:700; }
     .geomatics-regular{ font-weight:400; }
     .header-left p{ margin:0; font-size:0.95rem; opacity:0.92; }
-
     .header-logo{
       height:78px;
       width:auto;
@@ -100,7 +92,6 @@
       position:relative;
       overflow:hidden;
     }
-
     .section::before{
       content:"";
       position:absolute;
@@ -108,10 +99,9 @@
       height:5px;
       background:linear-gradient(90deg, var(--vista-blue-light), var(--vista-blue-dark));
     }
-
     .section-title{
       display:inline-flex; align-items:center; gap:8px;
-      font-weight:700;
+      font-weight:800;
       margin-bottom:6px;
       font-size:1.02rem;
       color:var(--vista-blue-dark);
@@ -120,7 +110,6 @@
       background:linear-gradient(90deg, rgba(22,95,125,0.09), rgba(11,48,69,0.05));
       box-shadow:0 0 0 1px rgba(22,95,125,0.12);
     }
-
     .section-subtext{
       font-size:0.82rem;
       color:var(--text-muted);
@@ -133,14 +122,16 @@
       grid-template-columns:repeat(2, minmax(0, 1fr));
       gap:12px;
     }
+    @media (max-width: 900px){
+      .grid-2{ grid-template-columns:1fr; }
+    }
 
     label{
       font-size:0.86rem;
-      font-weight:700;
+      font-weight:800;
       display:block;
       margin-bottom:4px;
     }
-
     input[type="text"], input[type="date"], select, textarea{
       width:100%;
       min-width:0;
@@ -152,7 +143,6 @@
       font-family:inherit;
       line-height:1.15;
     }
-
     textarea{
       resize:none;
       min-height:44px;
@@ -161,7 +151,6 @@
       word-break:break-word;
       overflow:hidden;
     }
-
     input:focus, select:focus, textarea:focus{
       outline:none;
       border-color:var(--vista-blue-light);
@@ -170,11 +159,8 @@
       transform:translateY(-1px);
     }
 
-    /* LANDSCAPE entries area: no sideways scrolling */
-    .entries-landscape{
-      width:100%;
-      overflow:hidden;
-    }
+    /* Landscape entries area, no sideways scrolling */
+    .entries-landscape{ width:100%; overflow:hidden; }
 
     table{
       width:100%;
@@ -185,7 +171,6 @@
       overflow:hidden;
       table-layout:fixed;
     }
-
     th, td{
       border:1px solid #d7e2f1;
       padding:8px 8px;
@@ -193,7 +178,6 @@
       word-break:break-word;
       overflow:visible;
     }
-
     th{
       background:linear-gradient(90deg, #e6f1fb, #dde9f7);
       text-align:left;
@@ -204,15 +188,11 @@
       white-space:normal;
       line-height:1.15;
     }
-
     tbody tr:nth-child(even){ background:#f7faff; }
     .cell-tight{ padding:6px 7px; }
     td input, td textarea, td select{ width:100%; min-width:0; }
 
-    .money-input, .km-input{
-      text-align:right;
-      font-variant-numeric:tabular-nums;
-    }
+    .money-input, .km-input{ text-align:right; font-variant-numeric:tabular-nums; }
 
     .row-actions{
       display:flex;
@@ -229,7 +209,9 @@
       align-items:end;
       margin-top:12px;
     }
-
+    @media (max-width: 900px){
+      .totals-bar{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    }
     .totals-box{
       border:1px solid var(--border-soft);
       border-radius:12px;
@@ -237,16 +219,14 @@
       padding:12px;
       box-shadow:0 8px 18px rgba(5,41,66,0.06);
     }
-
     .totals-box .label{
       font-size:0.74rem;
       text-transform:uppercase;
       letter-spacing:0.06em;
       color:var(--text-muted);
       margin-bottom:6px;
-      font-weight:800;
+      font-weight:900;
     }
-
     .totals-box .value{
       font-size:1.10rem;
       font-weight:900;
@@ -259,30 +239,26 @@
       border-radius:999px;
       border:none;
       cursor:pointer;
-      font-weight:800;
+      font-weight:900;
       letter-spacing:0.05em;
       text-transform:uppercase;
       transition:transform 0.12s ease, box-shadow 0.12s ease;
     }
-
     .btn-primary{
       background:linear-gradient(120deg, var(--vista-blue-light) 0%, var(--vista-blue) 40%, var(--vista-blue-dark) 100%);
       color:#fff;
       box-shadow:0 10px 24px rgba(5,41,66,0.45);
     }
-
     .btn-secondary{
       background:#f3f4f6;
       color:var(--text-main);
       border:1px solid #d4d7dd;
     }
-
     .btn-ghost{
       background:#fff;
       color:var(--vista-blue-dark);
       border:1px solid var(--border-soft);
     }
-
     .btn-primary:hover, .btn-secondary:hover, .btn-ghost:hover{
       transform:translateY(-1px);
       box-shadow:0 12px 26px rgba(5,41,66,0.18);
@@ -290,7 +266,7 @@
 
     .status{
       font-size:0.9rem;
-      font-weight:800;
+      font-weight:900;
       padding:10px 14px;
       border-radius:12px;
       border:1px solid var(--border-soft);
@@ -310,7 +286,7 @@
       border:1px solid #d6e2f0;
       border-radius:8px;
       background:#fff;
-      min-height:36px;
+      min-height:34px;
       white-space:pre-wrap;
       word-break:break-word;
       overflow:visible;
@@ -326,7 +302,7 @@
       user-select:none;
     }
 
-    /* Receipts, images only */
+    /* On-screen receipt preview grid */
     #receiptPreview{
       margin-top:12px;
       display:grid;
@@ -354,12 +330,12 @@
       border-radius:10px;
     }
 
-    /* Export sandbox: off-screen but visible to renderer */
+    /* Export sandbox off-screen but visible to renderer */
     #exportSandbox{
       position:fixed;
       left:0;
       top:0;
-      width:13.0in;              /* Landscape capture width hint */
+      width:13.0in;
       background:#fff;
       pointer-events:none;
       transform:translateX(-200vw);
@@ -376,12 +352,32 @@
     .export-mode .header-left h1{ font-size:1.15rem; }
     .export-mode .section-title{ font-size:0.90rem; }
 
-    /* Mobile: keep table readable without horizontal scroll by shrinking columns */
-    @media (max-width: 900px){
-      .grid-2{ grid-template-columns:1fr; }
-      .totals-bar{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
-      th{ font-size:0.70rem; }
-      table{ font-size:0.82rem; }
+    /* Export receipts full page, one per page */
+    .export-receipts{
+      margin-top:10px;
+      page-break-before:always;
+      break-before:page;
+    }
+    .export-receipt-page{
+      page-break-before:always;
+      break-before:page;
+      padding:0;
+      margin:0;
+      border:0;
+    }
+    .export-receipt-title{
+      font-size:0.85rem;
+      font-weight:900;
+      color:#374151;
+      margin:0 0 8px 0;
+      word-break:break-word;
+    }
+    .export-receipt-img{
+      width:100%;
+      height:auto;
+      display:block;
+      border-radius:12px;
+      border:1px solid #d6e2f0;
     }
   </style>
 </head>
@@ -418,7 +414,7 @@
         <div class="section">
           <div class="section-title">Expense Entries</div>
           <p class="section-subtext">
-            Starts with 3 rows, add more as needed. Descriptions can be long, they wrap in the exported PDF. No sideways scrolling.
+            Starts with 3 rows, add more as needed. Descriptions can be long and wrap in the exported PDF.
           </p>
 
           <div class="entries-landscape">
@@ -455,7 +451,7 @@
         <div class="section">
           <div class="section-title">Receipts</div>
           <p class="section-subtext">
-            Photos only (fast and reliable). Take a picture or upload existing images.
+            Photos only (fast and reliable). These will export as full pages after the report, one receipt per page.
           </p>
 
           <div class="grid-2">
@@ -470,7 +466,6 @@
           </div>
 
           <div class="section-subtext" id="receiptCountText" style="margin-top:8px;">No receipts selected.</div>
-
           <div id="receiptPreview"></div>
         </div>
 
@@ -507,7 +502,7 @@
   <script src="html2pdf.bundle.min.js"></script>
 
   <script>
-    const VERSION = "5.0";
+    const VERSION = "5.1";
     const EMAIL_TO = "timesheets@vistageomatics.com";
     const DEFAULT_ROWS = 3;
 
@@ -538,6 +533,9 @@
     const exportSandbox = document.getElementById("exportSandbox");
 
     versionFooter.textContent = "Version " + VERSION;
+
+    // Store receipt image data URLs for export pages
+    let receiptDataUrls = [];
 
     function setStatus(msg, kind){
       statusBox.style.display = "block";
@@ -693,15 +691,31 @@
       return block;
     }
 
-    function updateReceiptCount(){
-      const imgCount = (receiptPhotosInput.files || []).length;
-      receiptCountText.textContent = imgCount ? `${imgCount} receipt photo(s) selected.` : "No receipts selected.";
+    async function fileToDataUrl(file){
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("Could not read image file."));
+        reader.readAsDataURL(file);
+      });
     }
 
-    function rebuildReceiptPreview(){
+    async function rebuildReceiptPreviewAndCache(){
       receiptPreview.innerHTML = "";
+      receiptDataUrls = [];
+
       const files = Array.from(receiptPhotosInput.files || []);
+      receiptCountText.textContent = files.length ? `${files.length} receipt photo(s) selected.` : "No receipts selected.";
+
+      if (!files.length) return;
+
+      setStatus("Loading receipt photos…", "");
+
       for (const f of files){
+        // Use Data URLs so exports always include images (no blob URL timing issues on iPad)
+        const dataUrl = await fileToDataUrl(f);
+        receiptDataUrls.push({ name: f.name || "Receipt photo", dataUrl });
+
         const card = document.createElement("div");
         card.className = "receipt-card";
 
@@ -712,16 +726,19 @@
 
         const img = document.createElement("img");
         img.className = "receipt-img";
-        img.src = URL.createObjectURL(f);
+        img.src = dataUrl;
         card.appendChild(img);
 
         receiptPreview.appendChild(card);
       }
+
+      setStatus("Receipts ready. Export will add them as full pages.", "ok");
     }
 
     function clearReceipts(){
       receiptPhotosInput.value = "";
-      updateReceiptCount();
+      receiptDataUrls = [];
+      receiptCountText.textContent = "No receipts selected.";
       receiptPreview.innerHTML = "";
       setStatus("Receipts cleared.", "ok");
     }
@@ -735,7 +752,7 @@
       source.style.maxWidth = "13.0in";
       source.style.margin = "0";
 
-      // Replace inputs/selects/textareas with blocks so nothing is cut off
+      // Replace inputs with blocks so nothing is cut off
       source.querySelectorAll("input, select, textarea").forEach(el => {
         if (el.tagName === "SELECT"){
           const opt = el.options[el.selectedIndex];
@@ -747,15 +764,43 @@
         }
       });
 
+      // Remove on-screen receipt preview section contents from report export (we export receipts separately as pages)
+      const preview = source.querySelector("#receiptPreview");
+      if (preview) preview.innerHTML = "";
+
       // Remove buttons/status from export
       source.querySelectorAll("button").forEach(b => b.remove());
       const status = source.querySelector("#statusBox");
       if (status) status.remove();
 
-      // Version footer
+      // Version
       const vf = source.querySelector("#versionFooter");
       if (vf) vf.textContent = "Version " + VERSION;
 
+      // Append receipt pages (full-page) after report
+      if (receiptDataUrls.length){
+        const wrap = document.createElement("div");
+        wrap.className = "export-receipts";
+
+        receiptDataUrls.forEach((r, idx) => {
+          const page = document.createElement("div");
+          page.className = "export-receipt-page";
+
+          const title = document.createElement("div");
+          title.className = "export-receipt-title";
+          title.textContent = `Receipt ${idx + 1}, ${r.name}`;
+          page.appendChild(title);
+
+          const img = document.createElement("img");
+          img.className = "export-receipt-img";
+          img.src = r.dataUrl;
+          page.appendChild(img);
+
+          wrap.appendChild(page);
+        });
+
+        source.appendChild(wrap);
+      }
 
       return source;
     }
@@ -785,7 +830,7 @@
       await new Promise(requestAnimationFrame);
 
       const opt = {
-        margin:      [0.25, 0.25, 0.25, 0.25], // inches
+        margin:      [0.25, 0.25, 0.25, 0.25],
         filename:    "temp.pdf",
         image:       { type:"jpeg", quality:0.96 },
         html2canvas: {
@@ -793,8 +838,7 @@
           useCORS: true,
           logging: false,
           backgroundColor: "#ffffff",
-          // 13in * 96dpi = 1248
-          windowWidth: 1248,
+          windowWidth: 1248, // 13in * 96dpi
           scrollX: 0,
           scrollY: 0
         },
@@ -814,6 +858,11 @@
       clearStatus();
       try{
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
+
+        // Ensure receipt cache is built (data URLs)
+        if ((receiptPhotosInput.files || []).length && receiptDataUrls.length === 0){
+          await rebuildReceiptPreviewAndCache();
+        }
 
         setStatus("Exporting PDF, Legal size, Landscape…", "");
         const blob = await exportReportPdfBlobLegalLandscape();
@@ -873,9 +922,13 @@ Thanks,`;
     addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
 
-    receiptPhotosInput.addEventListener("change", () => {
-      updateReceiptCount();
-      rebuildReceiptPreview();
+    receiptPhotosInput.addEventListener("change", async () => {
+      clearStatus();
+      try{
+        await rebuildReceiptPreviewAndCache();
+      } catch(e){
+        setStatus("Receipt load failed, " + String(e), "bad");
+      }
     });
 
     clearReceiptsBtn.addEventListener("click", clearReceipts);
@@ -898,7 +951,7 @@ Thanks,`;
       const today = new Date().toISOString().slice(0,10);
       if (!reportDateEl.value) reportDateEl.value = today;
       filenameEl.value = buildDefaultFilename();
-      updateReceiptCount();
+      receiptCountText.textContent = "No receipts selected.";
       receiptPreview.innerHTML = "";
       setTimeout(() => {
         if (typeof window.html2pdf === "undefined") {
