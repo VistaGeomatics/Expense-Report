@@ -333,7 +333,6 @@
       font-weight:900;
     }
 
-    /* Hidden export root (captured by html2canvas) */
     #exportRoot{
       position:fixed;
       left:-99999px;
@@ -559,12 +558,12 @@
   <script src="./jspdf.umd.min.js"></script>
 
   <script>
-    // Version bumped for this change
-    const VERSION = "1.1";
+    // Version bumped for this change (receipt image normalization to prevent black/white exports)
+    const VERSION = "1.2";
     const EMAIL_TO = "timesheets@vistageomatics.com";
     const DEFAULT_ROWS = 3;
 
-    const STORAGE_KEY = "vista_expense_report_v1_1";
+    const STORAGE_KEY = "vista_expense_report_v1_2";
     const SAVE_DEBOUNCE_MS = 350;
 
     const tbody = document.getElementById("expenseTbody");
@@ -596,7 +595,7 @@
 
     versionFooter.textContent = "Version " + VERSION;
 
-    let receiptDataUrls = []; // [{name, dataUrl, w, h}]
+    let receiptDataUrls = []; // [{name, dataUrl(JPEG), w, h}]
     let saveTimer = null;
 
     function setStatus(msg, kind){
@@ -792,6 +791,7 @@
       kmSumEl.textContent = (kmSum % 1 === 0) ? String(kmSum.toFixed(0)) : String(kmSum.toFixed(1));
     }
 
+    // ---------- Receipt normalization (fixes black/white exports) ----------
     async function fileToDataUrl(file){
       return await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -801,14 +801,41 @@
       });
     }
 
-    async function getImageSize(dataUrl){
+    async function loadImageFromDataUrl(dataUrl){
       return await new Promise((resolve, reject) => {
         const img = new Image();
-        img.onload = () => resolve({ w: img.naturalWidth || img.width, h: img.naturalHeight || img.height });
-        img.onerror = () => reject(new Error("Could not load receipt image."));
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("Could not load receipt image (unsupported format)."));
         img.src = dataUrl;
       });
     }
+
+    async function normalizeReceiptToJpeg(file){
+      const rawDataUrl = await fileToDataUrl(file);
+      const img = await loadImageFromDataUrl(rawDataUrl);
+
+      // scale down huge images for speed/memory (keeps readability)
+      const maxSide = 2200;
+      let w = img.naturalWidth || img.width;
+      let h = img.naturalHeight || img.height;
+
+      const scale = Math.min(1, maxSide / Math.max(w, h));
+      const outW = Math.max(1, Math.round(w * scale));
+      const outH = Math.max(1, Math.round(h * scale));
+
+      const canvas = document.createElement("canvas");
+      canvas.width = outW;
+      canvas.height = outH;
+
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, outW, outH);
+      ctx.drawImage(img, 0, 0, outW, outH);
+
+      const jpegDataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      return { jpegDataUrl, w: outW, h: outH };
+    }
+    // ------------------------------------------------------------
 
     async function rebuildReceiptPreviewAndCache(){
       receiptPreview.innerHTML = "";
@@ -821,27 +848,42 @@
       setStatus("Loading receipt photos…", "");
 
       for (const f of files){
-        const dataUrl = await fileToDataUrl(f);
-        const sz = await getImageSize(dataUrl);
-        receiptDataUrls.push({ name: f.name || "Receipt photo", dataUrl, w: sz.w, h: sz.h });
+        try{
+          const normalized = await normalizeReceiptToJpeg(f);
 
-        const card = document.createElement("div");
-        card.className = "receipt-card";
+          receiptDataUrls.push({
+            name: f.name || "Receipt photo",
+            dataUrl: normalized.jpegDataUrl, // ALWAYS JPEG
+            w: normalized.w,
+            h: normalized.h
+          });
 
-        const cap = document.createElement("div");
-        cap.className = "receipt-caption";
-        cap.textContent = f.name || "Receipt photo";
-        card.appendChild(cap);
+          const card = document.createElement("div");
+          card.className = "receipt-card";
 
-        const img = document.createElement("img");
-        img.className = "receipt-img";
-        img.src = dataUrl;
-        card.appendChild(img);
+          const cap = document.createElement("div");
+          cap.className = "receipt-caption";
+          cap.textContent = f.name || "Receipt photo";
+          card.appendChild(cap);
 
-        receiptPreview.appendChild(card);
+          const img = document.createElement("img");
+          img.className = "receipt-img";
+          img.src = normalized.jpegDataUrl;
+          card.appendChild(img);
+
+          receiptPreview.appendChild(card);
+        } catch(e){
+          setStatus(
+            `One receipt could not be processed: ${f.name || "unknown"}.\n` +
+            `If this is HEIC/HEIF, change iPhone Camera to "Most Compatible" or retake as a screenshot/photo.`,
+            "bad"
+          );
+        }
       }
 
-      setStatus("Receipts ready. Export will include them (portrait pages, one per page).", "ok");
+      if (receiptDataUrls.length){
+        setStatus("Receipts ready. Export will include them (portrait pages, one per page).", "ok");
+      }
     }
 
     function clearReceipts(){
@@ -993,11 +1035,10 @@
       return { w: imgW * r, h: imgH * r };
     }
 
-    // Receipts in PORTRAIT, ONE receipt per page
+    // Receipts in PORTRAIT, ONE receipt per page (always JPEG)
     async function addReceiptPages(pdf, marginPt){
       if (!receiptDataUrls.length) return;
 
-      // Start receipts on a new PORTRAIT page
       pdf.addPage("letter", "portrait");
 
       const pageW = () => pdf.internal.pageSize.getWidth();
@@ -1028,8 +1069,7 @@
         const x = marginPt + (imgBoxW - fitted.w) / 2;
         const y = imgBoxY + (imgBoxH - fitted.h) / 2;
 
-        const isPng = String(r.dataUrl).startsWith("data:image/png");
-        pdf.addImage(r.dataUrl, isPng ? "PNG" : "JPEG", x, y, fitted.w, fitted.h);
+        pdf.addImage(r.dataUrl, "JPEG", x, y, fitted.w, fitted.h);
 
         if (i < receiptDataUrls.length - 1){
           pdf.addPage("letter", "portrait");
@@ -1053,7 +1093,6 @@
         windowWidth: exportRoot.scrollWidth
       });
 
-      // Report in landscape letter
       const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "letter" });
       const marginPt = 24;
 
@@ -1187,9 +1226,6 @@ Thanks,`;
       setSavedLine("");
     }
 
-    // -------------------------
-    // Init rows
-    // -------------------------
     function initRows(){
       tbody.innerHTML = "";
       for (let i=0; i<DEFAULT_ROWS; i++) addRow();
@@ -1236,9 +1272,7 @@ Thanks,`;
       setStatus("Form cleared. Saved data cleared on this device.", "ok");
     });
 
-    // -------------------------
     // Init
-    // -------------------------
     (function init(){
       const today = new Date().toISOString().slice(0,10);
       if (!reportDateEl.value) reportDateEl.value = today;
