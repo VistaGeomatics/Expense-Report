@@ -4,19 +4,20 @@
   <meta charset="UTF-8" />
   <title>Vista Geomatics, Expense Report</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
 
   <!--
-    GitHub Pages, self-hosted files required (place beside this index.html):
-      1) vista-geomatics.png
-      2) html2pdf.bundle.min.js
-      3) pdf.min.js
-      4) pdf.worker.min.js
+    Self hosted, GitHub Pages friendly, place these files beside this index.html:
 
-    This version:
-      - Export PDF = Legal, Portrait, report + receipt images + receipt PDF pages (rendered to images)
-      - Submit = export + open email draft to timesheets@vistageomatics.com (attach manually)
-      - No pdf-lib
+    index.html
+    vista-geomatics.png
+    html2pdf.bundle.min.js
+    pdf.min.js
+    pdf.worker.min.js
+
+    This version exports Legal, Portrait, includes receipt images, includes receipt PDF pages rendered as images,
+    does not use pdf-lib, submit opens an email draft and you attach the exported PDF manually.
   -->
 
   <style>
@@ -31,7 +32,9 @@
       --ok:#065f46;
       --danger:#b91c1c;
     }
+
     *{ box-sizing:border-box; }
+
     body{
       margin:0;
       padding:24px;
@@ -39,7 +42,9 @@
       color:var(--text-main);
       background:radial-gradient(circle at top, #f4f8fc 0, #e4edf6 40%, #dde6f3 100%);
     }
+
     .page-wrap{ max-width:1200px; margin:0 auto; }
+
     .container{
       background:var(--bg-card);
       border-radius:18px;
@@ -47,6 +52,7 @@
       overflow:hidden;
       position:relative;
     }
+
     .container::before{
       content:"";
       position:absolute;
@@ -55,14 +61,26 @@
       background:radial-gradient(circle at top right, rgba(22,95,125,0.18), transparent 55%);
       opacity:0.9;
     }
+
     .header-bar{
-      position:relative; z-index:1;
-      display:flex; align-items:center; justify-content:space-between; gap:14px;
+      position:relative;
+      z-index:1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
       padding:18px 28px;
       background:linear-gradient(120deg, var(--vista-blue-light) 0%, var(--vista-blue) 40%, var(--vista-blue-dark) 100%);
       color:#fff;
     }
-    .header-left{ z-index:1; display:flex; flex-direction:column; gap:4px; }
+
+    .header-left{
+      z-index:1;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
     .header-left h1{
       margin:0;
       font-family:"Montserrat", sans-serif;
@@ -72,9 +90,16 @@
       text-transform:uppercase;
       line-height:1.05;
     }
+
     .vista-bold{ font-weight:700; }
     .geomatics-regular{ font-weight:400; }
-    .header-left p{ margin:0; font-size:0.96rem; opacity:0.92; }
+
+    .header-left p{
+      margin:0;
+      font-size:0.96rem;
+      opacity:0.92;
+    }
+
     .header-logo{
       height:90px;
       width:auto;
@@ -84,7 +109,8 @@
     }
 
     form{
-      position:relative; z-index:2;
+      position:relative;
+      z-index:2;
       padding:24px 28px 18px;
       background:radial-gradient(circle at top left, rgba(226,240,246,0.55), transparent 55%) #fff;
     }
@@ -99,15 +125,21 @@
       position:relative;
       overflow:hidden;
     }
+
     .section::before{
       content:"";
       position:absolute;
-      top:0; left:0; right:0;
+      top:0;
+      left:0;
+      right:0;
       height:5px;
       background:linear-gradient(90deg, var(--vista-blue-light), var(--vista-blue-dark));
     }
+
     .section-title{
-      display:inline-flex; align-items:center; gap:8px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
       font-weight:600;
       margin-bottom:6px;
       font-size:1.02rem;
@@ -117,12 +149,14 @@
       background:linear-gradient(90deg, rgba(22,95,125,0.09), rgba(11,48,69,0.05));
       box-shadow:0 0 0 1px rgba(22,95,125,0.12);
     }
+
     .section-subtext{
       font-size:0.82rem;
       color:var(--text-muted);
       margin:0 0 10px 0;
       line-height:1.35;
     }
+
     .grid-2{
       display:grid;
       grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
@@ -135,6 +169,7 @@
       display:block;
       margin-bottom:4px;
     }
+
     input[type="text"], input[type="date"], select, textarea{
       width:100%;
       min-width:0;
@@ -146,6 +181,7 @@
       font-family:inherit;
       line-height:1.15;
     }
+
     textarea{
       resize:none;
       min-height:44px;
@@ -154,6 +190,7 @@
       word-break:break-word;
       overflow:hidden;
     }
+
     input:focus, select:focus, textarea:focus{
       outline:none;
       border-color:var(--vista-blue-light);
@@ -163,6 +200,7 @@
     }
 
     .table-wrap{ overflow:auto; }
+
     table{
       width:100%;
       border-collapse:collapse;
@@ -173,6 +211,7 @@
       table-layout:fixed;
       min-width:1120px;
     }
+
     th, td{
       border:1px solid #d7e2f1;
       padding:8px 10px;
@@ -180,6 +219,7 @@
       word-break:break-word;
       overflow:visible;
     }
+
     th{
       background:linear-gradient(90deg, #e6f1fb, #dde9f7);
       text-align:left;
@@ -189,10 +229,16 @@
       color:#4b5563;
       white-space:nowrap;
     }
+
     tbody tr:nth-child(even){ background:#f7faff; }
+
     .cell-tight{ padding:6px 8px; }
     td input, td textarea, td select{ width:100%; min-width:0; }
-    .money-input, .km-input{ text-align:right; font-variant-numeric:tabular-nums; }
+
+    .money-input, .km-input{
+      text-align:right;
+      font-variant-numeric:tabular-nums;
+    }
 
     .row-actions{
       display:flex;
@@ -209,6 +255,7 @@
       align-items:end;
       margin-top:12px;
     }
+
     .totals-box{
       border:1px solid var(--border-soft);
       border-radius:12px;
@@ -216,6 +263,7 @@
       padding:12px;
       box-shadow:0 8px 18px rgba(5,41,66,0.06);
     }
+
     .totals-box .label{
       font-size:0.78rem;
       text-transform:uppercase;
@@ -224,6 +272,7 @@
       margin-bottom:6px;
       font-weight:700;
     }
+
     .totals-box .value{
       font-size:1.15rem;
       font-weight:800;
@@ -241,21 +290,25 @@
       text-transform:uppercase;
       transition:transform 0.12s ease, box-shadow 0.12s ease;
     }
+
     .btn-primary{
       background:linear-gradient(120deg, var(--vista-blue-light) 0%, var(--vista-blue) 40%, var(--vista-blue-dark) 100%);
       color:#fff;
       box-shadow:0 10px 24px rgba(5,41,66,0.45);
     }
+
     .btn-secondary{
       background:#f3f4f6;
       color:var(--text-main);
       border:1px solid #d4d7dd;
     }
+
     .btn-ghost{
       background:#fff;
       color:var(--vista-blue-dark);
       border:1px solid var(--border-soft);
     }
+
     .btn-primary:hover, .btn-secondary:hover, .btn-ghost:hover{
       transform:translateY(-1px);
       box-shadow:0 12px 26px rgba(5,41,66,0.18);
@@ -275,6 +328,7 @@
       white-space:pre-wrap;
       line-height:1.35;
     }
+
     .status.ok{ color:var(--ok); }
     .status.bad{ color:var(--danger); }
 
@@ -299,13 +353,13 @@
       user-select:none;
     }
 
-    /* Receipt preview cards (shown on screen, exported to PDF) */
     #receiptPreview{
       margin-top:12px;
       display:flex;
       flex-direction:column;
       gap:10px;
     }
+
     .receipt-card{
       border:1px solid #d6e2f0;
       border-radius:12px;
@@ -315,43 +369,44 @@
       page-break-after: always;
       break-after: page;
     }
+
     .receipt-caption{
       font-size:12px;
-      font-weight:700;
+      font-weight:800;
       color:#374151;
       margin:2px 0 8px;
       word-break:break-word;
     }
+
     .receipt-img{
       width:100%;
       height:auto;
       display:block;
       border-radius:10px;
     }
+
     .receipt-note{
       font-size:0.85rem;
       color:var(--text-muted);
     }
 
-    /* Export sandbox MUST be in DOM and sized like Legal width at 96dpi */
+    /* Export sandbox fix, do not push offscreen, keep opacity 0 so canvas captures correct width */
     #exportSandbox{
       position:fixed;
-      left:-10000px;
+      left:0;
       top:0;
-      width:816px; /* 8.5in * 96dpi */
+      width:8.5in;         /* match US Letter width, Legal has same width */
+      height:auto;
+      opacity:0;
+      pointer-events:none;
       background:#ffffff;
       z-index:-1;
     }
 
-    /* Export mode, fit everything nicely on Legal portrait */
     .export-mode form{ padding:16px 16px 12px; }
     .export-mode .section{ box-shadow:none; }
     .export-mode .table-wrap{ overflow:visible; }
-    .export-mode table{
-      min-width:0;
-      font-size:0.70rem;
-      table-layout:fixed;
-    }
+    .export-mode table{ min-width:0; font-size:0.70rem; table-layout:fixed; }
     .export-mode th{ font-size:0.62rem; white-space:normal; }
     .export-mode th, .export-mode td{ padding:6px 6px; }
     .export-mode .header-logo{ height:64px; }
@@ -401,7 +456,7 @@
         <div class="section">
           <div class="section-title">Expense Entries</div>
           <p class="section-subtext">
-            Starts with 3 rows, add more as needed. Descriptions can be long, they will wrap in the exported PDF.
+            Starts with 3 rows, add more as needed. Descriptions can be quite long, they will wrap in the exported PDF.
           </p>
 
           <div class="table-wrap">
@@ -438,7 +493,7 @@
         <div class="section">
           <div class="section-title">Receipts</div>
           <p class="section-subtext">
-            You can take photos or upload images. You can also upload receipt PDFs, they will be rendered into images so they export inside the report PDF.
+            Add receipt photos, or upload receipt PDFs. PDF receipts are rendered into images so they show in the exported report PDF.
           </p>
 
           <div class="grid-2">
@@ -453,11 +508,12 @@
           </div>
 
           <div class="row-actions" style="justify-content:flex-start; margin-top:12px;">
-            <button type="button" class="btn-ghost" id="rebuildReceiptsBtn">Build Receipt Pages</button>
+            <button type="button" class="btn-ghost" id="buildReceiptsBtn">Build Receipt Pages</button>
             <button type="button" class="btn-ghost" id="clearReceiptsBtn">Clear Receipts</button>
           </div>
 
           <div class="section-subtext" id="receiptCountText" style="margin-top:8px;">No receipts selected.</div>
+
           <div id="receiptPreview">
             <div class="receipt-note">Receipt pages will appear here after you select files and click “Build Receipt Pages”.</div>
           </div>
@@ -465,6 +521,7 @@
 
         <div class="section">
           <div class="section-title">Export and Submit</div>
+
           <div class="grid-2">
             <div>
               <label for="filename">File name</label>
@@ -479,7 +536,7 @@
           </div>
 
           <p class="section-subtext" style="margin-top:10px;">
-            Submit exports the PDF, then opens your email app to timesheets@vistageomatics.com. Attachments cannot be added automatically in a self hosted form, attach the exported PDF and send.
+            Submit exports the PDF, then opens your email app to timesheets@vistageomatics.com. A self hosted form cannot attach files automatically, attach the exported PDF manually, then send.
           </p>
 
           <div class="status" id="statusBox"></div>
@@ -492,18 +549,18 @@
 
   <div id="exportSandbox" aria-hidden="true"></div>
 
-  <!-- Libraries (self-hosted, iPad-safe, no defer) -->
+  <!-- Libraries (self hosted, no defer, iPad safe) -->
   <script src="html2pdf.bundle.min.js"></script>
   <script src="pdf.min.js"></script>
   <script>
-    // PDF.js worker path (self-hosted)
+    // Worker path fix, use absolute URL that includes the repo path
     if (window.pdfjsLib) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdf.worker.min.js", window.location.href).href;
     }
   </script>
 
   <script>
-    const VERSION = "4.1";
+    const VERSION = "4.2";
     const EMAIL_TO = "timesheets@vistageomatics.com";
     const DEFAULT_ROWS = 3;
 
@@ -527,7 +584,7 @@
     const receiptPhotosInput = document.getElementById("receiptPhotos");
     const receiptPdfsInput = document.getElementById("receiptPdfs");
     const receiptCountText = document.getElementById("receiptCountText");
-    const rebuildReceiptsBtn = document.getElementById("rebuildReceiptsBtn");
+    const buildReceiptsBtn = document.getElementById("buildReceiptsBtn");
     const clearReceiptsBtn = document.getElementById("clearReceiptsBtn");
     const receiptPreview = document.getElementById("receiptPreview");
 
@@ -543,6 +600,7 @@
       if (kind) statusBox.classList.add(kind);
       statusBox.textContent = msg;
     }
+
     function clearStatus(){
       statusBox.style.display = "none";
       statusBox.textContent = "";
@@ -553,19 +611,23 @@
       const num = Number(n || 0);
       return num.toLocaleString(undefined, { style:"currency", currency:"CAD" });
     }
+
     function parseMoney(str){
       const clean = String(str ?? "").replace(/[^0-9.\-]/g, "");
       const n = Number(clean);
       return Number.isFinite(n) ? n : 0;
     }
+
     function sanitizeFilename(name){
       return String(name || "Expense Report").replace(/[\\\/:*?"<>|]+/g, " ").trim();
     }
+
     function buildDefaultFilename(){
       const name = (employeeNameEl.value || "").trim() || "Employee";
       const date = reportDateEl.value ? reportDateEl.value : new Date().toISOString().slice(0,10);
       return `Expense Report, ${name}, ${date}`;
     }
+
     function autoGrow(el){
       if (!el) return;
       el.style.height = "auto";
@@ -583,6 +645,7 @@
       `;
       return sel;
     }
+
     function moneyInput(){
       const input = document.createElement("input");
       input.type = "text";
@@ -592,12 +655,14 @@
       input.className = "money-input";
       return input;
     }
+
     function kmInput(){
       const input = document.createElement("input");
       input.type = "text";
       input.inputMode = "decimal";
       input.autocomplete = "off";
       input.placeholder = "";
+
       input.className = "km-input";
       return input;
     }
@@ -624,7 +689,10 @@
       const gst = moneyInput(); tdGst.appendChild(gst);
 
       const tdTotal = document.createElement("td"); tdTotal.className="cell-tight";
-      const total = moneyInput(); total.readOnly=true; total.tabIndex=-1; tdTotal.appendChild(total);
+      const total = moneyInput();
+      total.readOnly = true;
+      total.tabIndex = -1;
+      tdTotal.appendChild(total);
 
       const tdDept = document.createElement("td"); tdDept.className="cell-tight";
       const dept = deptSelect(); tdDept.appendChild(dept);
@@ -641,6 +709,7 @@
         total.value = (s + g).toFixed(2);
         recalcTotals();
       }
+
       sub.addEventListener("input", recalcRow);
       gst.addEventListener("input", recalcRow);
       km.addEventListener("input", recalcTotals);
@@ -657,7 +726,10 @@
     }
 
     function recalcTotals(){
-      let subSum=0, gstSum=0, grand=0, kmSum=0;
+      let subSum = 0;
+      let gstSum = 0;
+      let grand = 0;
+      let kmSum = 0;
 
       Array.from(tbody.querySelectorAll("tr")).forEach(tr => {
         const sub = tr.querySelector("td:nth-child(4) input");
@@ -670,7 +742,10 @@
         const t = parseMoney(tot?.value);
         const k = parseMoney(km?.value);
 
-        subSum += s; gstSum += g; grand += t; kmSum += k;
+        subSum += s;
+        gstSum += g;
+        grand += t;
+        kmSum += k;
       });
 
       subtotalSumEl.textContent = money(subSum);
@@ -681,7 +756,7 @@
 
     function initRows(){
       tbody.innerHTML = "";
-      for (let i=0; i<DEFAULT_ROWS; i++) addRow();
+      for (let i = 0; i < DEFAULT_ROWS; i++) addRow();
     }
 
     function buildPrintBlock(value, minH){
@@ -722,29 +797,41 @@
       receiptPreview.appendChild(card);
     }
 
-    async function renderPdfFileToImages(file){
-      if (!window.pdfjsLib) throw new Error("PDF rendering library is missing, pdf.min.js did not load.");
-      const buf = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-
+    async function renderAllPages(pdf, filename){
       for (let p = 1; p <= pdf.numPages; p++){
         const page = await pdf.getPage(p);
+
+        // balance readability and performance, 2 is usually good on iPad
         const viewport = page.getViewport({ scale: 2 });
 
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
-
         canvas.width = viewport.width;
         canvas.height = viewport.height;
 
         await page.render({ canvasContext: ctx, viewport }).promise;
 
         const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
-        addReceiptCard(`${file.name} , page ${p}`, dataUrl);
+        addReceiptCard(`${filename}, page ${p}`, dataUrl);
       }
     }
 
-    async function rebuildReceiptPreview(){
+    async function renderPdfFileToImages(file){
+      if (!window.pdfjsLib) throw new Error("pdf.min.js did not load, PDF receipts cannot be rendered.");
+
+      const buf = await file.arrayBuffer();
+
+      // Try with worker first, if the worker path is wrong or blocked, retry without worker.
+      try{
+        const pdf = await pdfjsLib.getDocument({ data: buf, disableWorker: false }).promise;
+        await renderAllPages(pdf, file.name);
+      } catch (e){
+        const pdf = await pdfjsLib.getDocument({ data: buf, disableWorker: true }).promise;
+        await renderAllPages(pdf, file.name);
+      }
+    }
+
+    async function buildReceiptPages(){
       clearStatus();
       updateReceiptCount();
 
@@ -761,13 +848,13 @@
 
       setStatus("Building receipt pages…", "");
 
-      // Images
+      // Receipt images
       for (const f of imgFiles){
         const url = URL.createObjectURL(f);
         addReceiptCard(f.name || "Receipt photo", url);
       }
 
-      // PDFs rendered to images
+      // Receipt PDFs, rendered into images
       for (const f of pdfFiles){
         await renderPdfFileToImages(f);
       }
@@ -787,7 +874,12 @@
       const source = document.getElementById("reportArea").cloneNode(true);
       source.classList.add("export-mode");
 
-      // Replace inputs, selects, textareas with print blocks so nothing is cut off in PDF
+      // Force exact page width for capture
+      source.style.width = "8.5in";
+      source.style.maxWidth = "8.5in";
+      source.style.margin = "0";
+
+      // Replace all inputs, selects, textareas with print blocks so nothing is cut off
       source.querySelectorAll("input, select, textarea").forEach(el => {
         if (el.tagName === "SELECT"){
           const opt = el.options[el.selectedIndex];
@@ -802,15 +894,15 @@
       // Remove buttons in the clone
       source.querySelectorAll("button").forEach(b => b.remove());
 
-      // Replace status box content
+      // Remove status box in the clone
       const status = source.querySelector("#statusBox");
       if (status) status.remove();
 
-      // Version
+      // Set version footer
       const vf = source.querySelector("#versionFooter");
       if (vf) vf.textContent = "Version " + VERSION;
 
-      // Encourage table rows to stay together
+      // Keep rows together where possible
       source.querySelectorAll("tr").forEach(tr => {
         tr.style.pageBreakInside = "avoid";
         tr.style.breakInside = "avoid";
@@ -832,14 +924,13 @@
 
     async function exportReportPdfBlobLegalPortrait(){
       if (typeof window.html2pdf === "undefined") {
-        throw new Error("html2pdf is missing, html2pdf.bundle.min.js did not load.");
+        throw new Error("html2pdf.bundle.min.js did not load, export cannot run.");
       }
 
       exportSandbox.innerHTML = "";
       const clone = cloneForPdf();
       exportSandbox.appendChild(clone);
 
-      // Important, ensure receipt images, logo, etc are loaded
       await waitForImages(exportSandbox);
       await new Promise(requestAnimationFrame);
       await new Promise(requestAnimationFrame);
@@ -853,7 +944,7 @@
           useCORS: true,
           logging: false,
           backgroundColor: "#ffffff",
-          windowWidth: 816
+          windowWidth: 816 // 8.5in * 96dpi
         },
         jsPDF:       { unit:"in", format:"legal", orientation:"portrait" },
         pagebreak:   { mode:["css","legacy"] }
@@ -869,17 +960,17 @@
 
     async function exportPdfToDownload(){
       clearStatus();
+
       try{
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
 
-        // If receipts exist but preview not built yet, build them so export includes them
-        const hasReceipts = ((receiptPhotosInput.files || []).length + (receiptPdfsInput.files || []).length) > 0;
-        const hasReceiptCards = receiptPreview.querySelectorAll(".receipt-card").length > 0;
-        if (hasReceipts && !hasReceiptCards){
-          await rebuildReceiptPreview();
+        const selectedReceipts = ((receiptPhotosInput.files || []).length + (receiptPdfsInput.files || []).length) > 0;
+        const builtCards = receiptPreview.querySelectorAll(".receipt-card").length > 0;
+        if (selectedReceipts && !builtCards){
+          await buildReceiptPages();
         }
 
-        setStatus("Exporting PDF, Legal size, portrait…", "");
+        setStatus("Exporting PDF, Legal size, Portrait…", "");
         const blob = await exportReportPdfBlobLegalPortrait();
 
         const outName = sanitizeFilename(filenameEl.value) + ".pdf";
@@ -893,6 +984,7 @@
         a.remove();
 
         setTimeout(() => URL.revokeObjectURL(url), 1500);
+
         setStatus("PDF exported.", "ok");
         return outName;
       } catch(e){
@@ -928,24 +1020,23 @@ Attach the exported PDF and send.
 Thanks,`;
 
         window.location.href = buildMailtoLink(subject, body);
-        setStatus("Email draft opened. Attach the exported PDF and send.", "ok");
+        setStatus("Email draft opened. Attach the exported PDF, then send.", "ok");
       } catch(e){
         setStatus("Submit failed, " + String(e), "bad");
       }
     }
 
-    // Events
     addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
 
-    exportBtn.addEventListener("click", exportPdfToDownload);
-    submitBtn.addEventListener("click", submitSelfContained);
-
-    rebuildReceiptsBtn.addEventListener("click", rebuildReceiptPreview);
+    buildReceiptsBtn.addEventListener("click", buildReceiptPages);
     clearReceiptsBtn.addEventListener("click", clearReceipts);
 
     receiptPhotosInput.addEventListener("change", updateReceiptCount);
     receiptPdfsInput.addEventListener("change", updateReceiptCount);
+
+    exportBtn.addEventListener("click", exportPdfToDownload);
+    submitBtn.addEventListener("click", submitSelfContained);
 
     clearBtn.addEventListener("click", () => {
       clearStatus();
@@ -957,7 +1048,6 @@ Thanks,`;
       filenameEl.value = buildDefaultFilename();
     });
 
-    // Init
     (function init(){
       initRows();
       const today = new Date().toISOString().slice(0,10);
@@ -966,16 +1056,15 @@ Thanks,`;
       updateReceiptCount();
       clearReceiptPreview();
 
-      // Friendly diagnostics
       setTimeout(() => {
         const issues = [];
-        if (typeof window.html2pdf === "undefined") issues.push("Missing html2pdf.bundle.min.js (place beside index.html).");
-        if (!window.pdfjsLib) issues.push("Missing pdf.min.js (place beside index.html), PDF receipts will not render.");
+        if (typeof window.html2pdf === "undefined") issues.push("Missing html2pdf.bundle.min.js, place it beside index.html.");
+        if (!window.pdfjsLib) issues.push("Missing pdf.min.js, PDF receipts will not render.");
         if (window.pdfjsLib && (!pdfjsLib.GlobalWorkerOptions || !pdfjsLib.GlobalWorkerOptions.workerSrc)) {
-          issues.push("pdf.worker.min.js may be missing, PDF receipts may fail to render.");
+          issues.push("pdf.worker.min.js may be missing or misnamed, PDF receipts may render slower using fallback.");
         }
         if (issues.length) setStatus(issues.join("\n"), "bad");
-      }, 350);
+      }, 400);
     })();
   </script>
 </body>
