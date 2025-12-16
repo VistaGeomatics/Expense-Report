@@ -1,10 +1,9 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Vista Geomatics, Expense Report</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
 
   <style>
@@ -20,7 +19,6 @@
       --danger:#b91c1c;
     }
     *{ box-sizing:border-box; }
-
     body{
       margin:0;
       padding:18px;
@@ -28,9 +26,7 @@
       color:var(--text-main);
       background:radial-gradient(circle at top, #f4f8fc 0, #e4edf6 40%, #dde6f3 100%);
     }
-
     .page-wrap{ max-width:1400px; margin:0 auto; }
-
     .container{
       background:var(--bg-card);
       border-radius:18px;
@@ -71,7 +67,6 @@
     .vista-bold{ font-weight:700; }
     .geomatics-regular{ font-weight:400; }
     .header-left p{ margin:0; font-size:0.95rem; opacity:0.92; }
-
     .header-logo{
       height:78px;
       width:auto;
@@ -104,7 +99,6 @@
       height:5px;
       background:linear-gradient(90deg, var(--vista-blue-light), var(--vista-blue-dark));
     }
-
     .section-title{
       display:inline-flex; align-items:center; gap:8px;
       font-weight:900;
@@ -116,7 +110,6 @@
       background:linear-gradient(90deg, rgba(22,95,125,0.09), rgba(11,48,69,0.05));
       box-shadow:0 0 0 1px rgba(22,95,125,0.12);
     }
-
     .section-subtext{
       font-size:0.82rem;
       color:var(--text-muted);
@@ -139,7 +132,6 @@
       display:block;
       margin-bottom:4px;
     }
-
     input[type="text"], input[type="date"], select, textarea{
       width:100%;
       min-width:0;
@@ -151,7 +143,6 @@
       font-family:inherit;
       line-height:1.15;
     }
-
     textarea{
       resize:none;
       min-height:44px;
@@ -160,7 +151,6 @@
       word-break:break-word;
       overflow:hidden;
     }
-
     input:focus, select:focus, textarea:focus{
       outline:none;
       border-color:var(--vista-blue-light);
@@ -169,7 +159,6 @@
       transform:translateY(-1px);
     }
 
-    /* On-screen entries table */
     .entries-wrap{ width:100%; overflow:hidden; }
     table{
       width:100%;
@@ -185,7 +174,6 @@
       padding:8px 8px;
       vertical-align:top;
       word-break:break-word;
-      overflow:visible;
     }
     th{
       background:linear-gradient(90deg, #e6f1fb, #dde9f7);
@@ -287,8 +275,8 @@
       white-space:pre-wrap;
       line-height:1.35;
     }
-    .status.ok{ color:var(--ok); }
-    .status.bad{ color:var(--danger); }
+    .status.ok{ color:#065f46; }
+    .status.bad{ color:#b91c1c; }
 
     /* Receipts preview (screen) */
     #receiptPreview{
@@ -327,46 +315,28 @@
       user-select:none;
     }
 
-    /* ===== PRINT / PDF LAYOUT (FIXED WIDTH TO PREVENT RIGHT CLIP) ===== */
-    #printArea{ display:none; }
-
-    @media print{
-      /* reduce margins to gain width */
-      @page { size: letter landscape; margin: 0.25in; }
-
-      html, body{
-        background:#fff !important;
-        padding:0 !important;
-        margin:0 !important;
-      }
-
-      #appArea{ display:none !important; }
-      #printArea{ display:block !important; }
-
-      /* hard clamp printable width to avoid right-side cut in some print engines (esp. iOS) */
-      .print-fit{
-        width: 10.5in;      /* 11in minus 0.5in total page margins */
-        max-width: 10.5in;
-        margin: 0 auto;
-      }
-
-      *{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    /* Hidden export area (captured into PDF) */
+    #exportRoot{
+      position:fixed;
+      left:-99999px;
+      top:0;
+      width: 10.5in;          /* fixed “printable” width to prevent right cut-off */
+      background:#fff;
+      padding:12px;
     }
 
-    .p-page{ page-break-after: always; }
-
-    .p-header{
+    .x-header{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
-      padding:8px 10px;
+      gap:12px;
+      padding:10px 12px;
       border:1px solid #d6e2f0;
       border-radius:12px;
       background:linear-gradient(120deg, rgba(42,127,163,0.16), rgba(22,95,125,0.08));
-      margin-bottom:8px;
+      margin-bottom:10px;
     }
-    .p-title{
+    .x-title{
       font-family:"Montserrat", sans-serif;
       font-weight:700;
       letter-spacing:0.08em;
@@ -375,39 +345,38 @@
       margin:0;
       color:#0b3045;
     }
-    .p-subtitle{ margin:2px 0 0 0; color:#374151; font-size:11px; font-weight:700; }
-    .p-logo{ height:40px; width:auto; }
+    .x-subtitle{ margin:2px 0 0 0; color:#374151; font-size:11px; font-weight:700; }
+    .x-logo{ height:42px; width:auto; }
 
-    .p-meta{
+    .x-meta{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:8px;
-      margin-bottom:8px;
+      gap:10px;
+      margin-bottom:10px;
     }
-    .p-box{
+    .x-box{
       border:1px solid #d6e2f0;
       border-radius:12px;
-      padding:8px;
+      padding:10px;
       background:#fff;
     }
-    .p-label{ font-size:10px; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:5px; }
-    .p-value{ font-size:12px; font-weight:800; color:#111827; word-break:break-word; }
-    .p-note{ font-size:10px; color:#6b7280; margin:6px 0 0 0; font-weight:800; }
+    .x-label{ font-size:10px; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
+    .x-value{ font-size:12px; font-weight:800; color:#111827; word-break:break-word; }
+    .x-note{ font-size:10px; color:#6b7280; margin:6px 0 0 0; font-weight:900; }
 
-    /* PRINT TABLE: tighter padding + smaller fonts + column plan that fits */
-    .p-table{
+    .x-table{
       width:100%;
       border-collapse:collapse;
       table-layout:fixed;
-      font-size:10px;      /* smaller to fit all columns */
+      font-size:10px;
     }
-    .p-table th, .p-table td{
+    .x-table th, .x-table td{
       border:1px solid #d7e2f1;
-      padding:5px 5px;     /* tighter */
+      padding:5px 5px;
       vertical-align:top;
       word-break:break-word;
     }
-    .p-table th{
+    .x-table th{
       background:linear-gradient(90deg, #e6f1fb, #dde9f7);
       color:#374151;
       text-transform:uppercase;
@@ -415,74 +384,35 @@
       font-size:9px;
       white-space:nowrap;
     }
-    .p-nowrap{
-      white-space:nowrap;
-      word-break:normal;
-      overflow-wrap:normal;
-    }
+    .x-nowrap{ white-space:nowrap; }
 
-    .p-totals{
-      margin-top:8px;
+    .x-totals{
+      margin-top:10px;
       display:grid;
       grid-template-columns: repeat(4, 1fr);
-      gap:8px;
+      gap:10px;
     }
-    .p-totalbox{
+    .x-totalbox{
       border:1px solid #d6e2f0;
       border-radius:12px;
-      padding:8px;
+      padding:10px;
       background:#fff;
     }
-    .p-totalbox .k{ font-size:9px; font-weight:900; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; }
-    .p-totalbox .v{ margin-top:5px; font-size:12px; font-weight:900; color:#0b3045; }
+    .x-totalbox .k{ font-size:9px; font-weight:900; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; }
+    .x-totalbox .v{ margin-top:6px; font-size:12px; font-weight:900; color:#0b3045; }
 
-    .p-footer{
-      margin-top:6px;
+    .x-footer{
+      margin-top:8px;
       text-align:right;
       font-size:10px;
       color:#6b7280;
       font-weight:900;
-    }
-
-    /* RECEIPTS: 2 per page but bigger */
-    .p-receipts-page{ page-break-after: always; }
-    .p-receipts-grid{
-      display:grid;
-      grid-template-rows: 1fr 1fr;
-      gap:8px;
-    }
-    .p-receipt{
-      border:1px solid #d6e2f0;
-      border-radius:12px;
-      padding:8px;            /* less padding = bigger image area */
-      background:#fff;
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      min-height: 4.05in;     /* bigger than before for readability */
-    }
-    .p-receipt-title{
-      font-size:10px;
-      font-weight:900;
-      color:#374151;
-      margin:0 0 6px 0;
-      word-break:break-word;
-    }
-    .p-receipt-img{
-      width:100%;
-      height:auto;
-      border-radius:10px;
-      border:1px solid #e5eef9;
-      object-fit:contain;
-      flex:1 1 auto;
-      max-height: 3.70in;     /* larger image */
     }
   </style>
 </head>
 
 <body>
   <div class="page-wrap">
-    <!-- APP (screen) -->
     <div class="container" id="appArea">
       <div class="header-bar">
         <div class="header-left">
@@ -550,7 +480,7 @@
         <div class="section">
           <div class="section-title">Receipts</div>
           <p class="section-subtext">
-            Photos only. Export will include receipts after the report, 2 per page (larger for readability).
+            Photos only. PDF export will append receipts after the report, 2 per page, large and legible.
           </p>
 
           <div class="grid-2">
@@ -578,15 +508,15 @@
             </div>
 
             <div style="display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap;">
-              <button type="button" class="btn-primary" id="exportBtn">Export PDF</button>
+              <button type="button" class="btn-primary" id="exportBtn">Download PDF</button>
               <button type="button" class="btn-primary" id="submitBtn">Submit</button>
               <button type="button" class="btn-secondary" id="clearBtn">Clear</button>
             </div>
           </div>
 
           <p class="section-subtext" style="margin-top:10px;">
-            Export opens Print. Choose “Save as PDF”. Submit opens an email draft to timesheets@vistageomatics.com,
-            attach the saved PDF, then send.
+            Submit downloads the PDF, then opens an email draft to timesheets@vistageomatics.com.
+            (Browsers cannot auto-attach files in email drafts.)
           </p>
 
           <div class="status" id="statusBox"></div>
@@ -595,11 +525,32 @@
         <div class="footer-version" id="versionFooter"></div>
       </form>
     </div>
-
-    <!-- PRINT (PDF) -->
-    <div id="printArea"></div>
   </div>
 
+  <!-- Hidden export root (captured by html2canvas) -->
+  <div id="exportRoot" aria-hidden="true"></div>
+
+  <!-- =========================
+       EMBED LIBS (PASTE HERE)
+       ========================= -->
+
+  <script>
+  /* PASTE html2canvas.min.js CONTENT HERE
+     Example:
+     !function(e){... huge minified ...}(window);
+  */
+  </script>
+
+  <script>
+  /* PASTE jspdf.umd.min.js CONTENT HERE
+     Example:
+     (function(global,factory){...})(this,(function(exports){...}));
+  */
+  </script>
+
+  <!-- =========================
+       APP LOGIC
+       ========================= -->
   <script>
     const VERSION = "1";
     const EMAIL_TO = "timesheets@vistageomatics.com";
@@ -629,11 +580,11 @@
 
     const statusBox = document.getElementById("statusBox");
     const versionFooter = document.getElementById("versionFooter");
-    const printArea = document.getElementById("printArea");
+    const exportRoot = document.getElementById("exportRoot");
 
     versionFooter.textContent = "Version " + VERSION;
 
-    let receiptDataUrls = []; // [{name, dataUrl}]
+    let receiptDataUrls = []; // [{name, dataUrl, w, h}]
 
     function setStatus(msg, kind){
       statusBox.style.display = "block";
@@ -792,6 +743,16 @@
       });
     }
 
+    async function getImageSize(dataUrl){
+      return await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve({ w: img.naturalWidth || img.width, h: img.naturalHeight || img.height });
+        img.onerror = () => reject(new Error("Could not load receipt image."));
+
+        img.src = dataUrl;
+      });
+    }
+
     async function rebuildReceiptPreviewAndCache(){
       receiptPreview.innerHTML = "";
       receiptDataUrls = [];
@@ -804,7 +765,8 @@
 
       for (const f of files){
         const dataUrl = await fileToDataUrl(f);
-        receiptDataUrls.push({ name: f.name || "Receipt photo", dataUrl });
+        const sz = await getImageSize(dataUrl);
+        receiptDataUrls.push({ name: f.name || "Receipt photo", dataUrl, w: sz.w, h: sz.h });
 
         const card = document.createElement("div");
         card.className = "receipt-card";
@@ -822,7 +784,7 @@
         receiptPreview.appendChild(card);
       }
 
-      setStatus("Receipts ready. Export will include them bigger, 2 per page.", "ok");
+      setStatus("Receipts ready. Export will include them 2 per page, large.", "ok");
     }
 
     function clearReceipts(){
@@ -850,7 +812,7 @@
       return rows;
     }
 
-    function escapeHtml(s){
+    function esc(s){
       return String(s ?? "")
         .replaceAll("&","&amp;")
         .replaceAll("<","&lt;")
@@ -859,16 +821,7 @@
         .replaceAll("'","&#039;");
     }
 
-    function receiptBlockHTML(num, receipt){
-      return `
-        <div class="p-receipt">
-          <p class="p-receipt-title">Receipt ${num}, ${escapeHtml(receipt.name || "Receipt")}</p>
-          <img class="p-receipt-img" src="${receipt.dataUrl}" alt="Receipt ${num}" />
-        </div>
-      `;
-    }
-
-    function buildPrintHTML(){
+    function buildExportHTML(){
       const employee = (employeeNameEl.value || "").trim();
       const reportDate = (reportDateEl.value || "").trim();
       const fileName = sanitizeFilename(filenameEl.value || buildDefaultFilename());
@@ -881,143 +834,259 @@
 
       const reportRowsHTML = rows.map(r => `
         <tr>
-          <td class="p-nowrap">${escapeHtml(r.date)}</td>
-          <td>${escapeHtml(r.vendor)}</td>
-          <td>${escapeHtml(r.desc)}</td>
-          <td class="p-nowrap">${escapeHtml(r.sub)}</td>
-          <td class="p-nowrap">${escapeHtml(r.gst)}</td>
-          <td class="p-nowrap">${escapeHtml(r.total)}</td>
-          <td class="p-nowrap">${escapeHtml(r.deptText)}</td>
-          <td class="p-nowrap">${escapeHtml(r.km)}</td>
+          <td class="x-nowrap">${esc(r.date)}</td>
+          <td>${esc(r.vendor)}</td>
+          <td>${esc(r.desc)}</td>
+          <td class="x-nowrap">${esc(r.sub)}</td>
+          <td class="x-nowrap">${esc(r.gst)}</td>
+          <td class="x-nowrap">${esc(r.total)}</td>
+          <td class="x-nowrap">${esc(r.deptText)}</td>
+          <td class="x-nowrap">${esc(r.km)}</td>
         </tr>
       `).join("");
 
-      let html = `
-        <div class="print-fit">
-          <div class="p-page">
-            <div class="p-header">
-              <div>
-                <p class="p-title">VISTA GEOMATICS</p>
-                <p class="p-subtitle">Employee Out of Pocket Expense Report</p>
-              </div>
-              <img class="p-logo" src="vista-geomatics.png" alt="Vista Geomatics" />
-            </div>
+      return `
+        <div class="x-header">
+          <div>
+            <p class="x-title">VISTA GEOMATICS</p>
+            <p class="x-subtitle">Employee Out of Pocket Expense Report</p>
+          </div>
+          <img class="x-logo" src="vista-geomatics.png" alt="Vista Geomatics" />
+        </div>
 
-            <div class="p-meta">
-              <div class="p-box">
-                <div class="p-label">Name</div>
-                <div class="p-value">${escapeHtml(employee)}</div>
-              </div>
-              <div class="p-box">
-                <div class="p-label">Report Date</div>
-                <div class="p-value p-nowrap">${escapeHtml(reportDate)}</div>
-              </div>
-            </div>
-
-            <div class="p-box" style="margin-bottom:8px;">
-              <div class="p-label">Department Codes</div>
-              <div class="p-value" style="font-size:11px;">
-                Municipal 100, Oil and Gas 200, Office 300, Construction 400
-              </div>
-              <p class="p-note">File name, ${escapeHtml(fileName)}.pdf</p>
-            </div>
-
-            <table class="p-table">
-              <thead>
-                <tr>
-                  <!-- Width plan sums to 100% and fits 10.5in content -->
-                  <th style="width:9%;">Date</th>
-                  <th style="width:12%;">Vendor</th>
-                  <th style="width:28%;">Item Description</th>
-                  <th style="width:8%;">Subtotal</th>
-                  <th style="width:7%;">GST</th>
-                  <th style="width:8%;">Total</th>
-                  <th style="width:18%;">Department</th>
-                  <th style="width:10%;">Personal KM</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${reportRowsHTML || `<tr><td colspan="8" style="color:#6b7280; font-weight:900;">No expense entries.</td></tr>`}
-              </tbody>
-            </table>
-
-            <div class="p-totals">
-              <div class="p-totalbox"><div class="k">Subtotal Total</div><div class="v">${escapeHtml(subtotalTotal)}</div></div>
-              <div class="p-totalbox"><div class="k">GST Total</div><div class="v">${escapeHtml(gstTotal)}</div></div>
-              <div class="p-totalbox"><div class="k">Grand Total</div><div class="v">${escapeHtml(grandTotal)}</div></div>
-              <div class="p-totalbox"><div class="k">Personal KM Total</div><div class="v">${escapeHtml(kmTotal)}</div></div>
-            </div>
-
-            <div class="p-footer">Version ${VERSION}</div>
+        <div class="x-meta">
+          <div class="x-box">
+            <div class="x-label">Name</div>
+            <div class="x-value">${esc(employee)}</div>
+          </div>
+          <div class="x-box">
+            <div class="x-label">Report Date</div>
+            <div class="x-value x-nowrap">${esc(reportDate)}</div>
           </div>
         </div>
+
+        <div class="x-box" style="margin-bottom:10px;">
+          <div class="x-label">Department Codes</div>
+          <div class="x-value" style="font-size:11px;">Municipal 100, Oil and Gas 200, Office 300, Construction 400</div>
+          <p class="x-note">File name, ${esc(fileName)}.pdf</p>
+        </div>
+
+        <table class="x-table">
+          <thead>
+            <tr>
+              <th style="width:9%;">Date</th>
+              <th style="width:12%;">Vendor</th>
+              <th style="width:28%;">Item Description</th>
+              <th style="width:8%;">Subtotal</th>
+              <th style="width:7%;">GST</th>
+              <th style="width:8%;">Total</th>
+              <th style="width:18%;">Department</th>
+              <th style="width:10%;">Personal KM</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${reportRowsHTML || `<tr><td colspan="8" style="color:#6b7280; font-weight:900;">No expense entries.</td></tr>`}
+          </tbody>
+        </table>
+
+        <div class="x-totals">
+          <div class="x-totalbox"><div class="k">Subtotal Total</div><div class="v">${esc(subtotalTotal)}</div></div>
+          <div class="x-totalbox"><div class="k">GST Total</div><div class="v">${esc(gstTotal)}</div></div>
+          <div class="x-totalbox"><div class="k">Grand Total</div><div class="v">${esc(grandTotal)}</div></div>
+          <div class="x-totalbox"><div class="k">Personal KM Total</div><div class="v">${esc(kmTotal)}</div></div>
+        </div>
+
+        <div class="x-footer">Version ${VERSION}</div>
       `;
+    }
 
-      if (receiptDataUrls.length){
-        for (let i = 0; i < receiptDataUrls.length; i += 2){
-          const a = receiptDataUrls[i];
-          const b = receiptDataUrls[i + 1];
+    function ensureLibsLoaded(){
+      if (typeof html2canvas !== "function") {
+        throw new Error("html2canvas not loaded. Paste html2canvas.min.js into the script block.");
+      }
+      const jspdfNs = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf : (window.jspdf && window.jspdf.default ? window.jspdf : null);
+      if (!jspdfNs || !jspdfNs.jsPDF) {
+        throw new Error("jsPDF not loaded. Paste jspdf.umd.min.js into the script block.");
+      }
+      return jspdfNs.jsPDF;
+    }
 
-          html += `
-            <div class="print-fit">
-              <div class="p-receipts-page">
-                <div class="p-header" style="margin-bottom:8px;">
-                  <div>
-                    <p class="p-title">Receipts</p>
-                    <p class="p-subtitle">Two per page (larger)</p>
-                  </div>
-                  <img class="p-logo" src="vista-geomatics.png" alt="Vista Geomatics" />
-                </div>
+    async function canvasToPagedPdf(pdf, canvas, marginPt){
+      // Letter landscape in points: 792 x 612
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const usableW = pageW - marginPt*2;
+      const usableH = pageH - marginPt*2;
 
-                <div class="p-receipts-grid">
-                  ${receiptBlockHTML(i + 1, a)}
-                  ${b ? receiptBlockHTML(i + 2, b) : `<div class="p-receipt" style="opacity:0.35;"><p class="p-receipt-title">Blank</p></div>`}
-                </div>
+      const imgData = canvas.toDataURL("image/jpeg", 0.92);
 
-                <div class="p-footer">Version ${VERSION}</div>
-              </div>
-            </div>
-          `;
+      const canvasW = canvas.width;
+      const canvasH = canvas.height;
+
+      // scale to fit width
+      const scale = usableW / canvasW;
+      const scaledH = canvasH * scale;
+
+      if (scaledH <= usableH){
+        pdf.addImage(imgData, "JPEG", marginPt, marginPt, usableW, scaledH);
+        return;
+      }
+
+      // Page slicing:
+      // We draw the same image multiple times with negative y offset to simulate cropping.
+      let yOffset = 0;
+      let pageIndex = 0;
+
+      while (yOffset < scaledH - 1){
+        if (pageIndex > 0) pdf.addPage();
+
+        // Place the full image but shifted up so the desired slice is visible
+        pdf.addImage(
+          imgData,
+          "JPEG",
+          marginPt,
+          marginPt - yOffset,
+          usableW,
+          scaledH
+        );
+
+        yOffset += usableH;
+        pageIndex += 1;
+      }
+    }
+
+    function fitRect(imgW, imgH, boxW, boxH){
+      const r = Math.min(boxW / imgW, boxH / imgH);
+      return { w: imgW * r, h: imgH * r };
+    }
+
+    async function addReceiptPages(pdf, marginPt){
+      if (!receiptDataUrls.length) return;
+
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const usableW = pageW - marginPt*2;
+      const usableH = pageH - marginPt*2;
+
+      // 2 per page: top + bottom
+      const gap = 10; // pt
+      const headerH = 0; // keep minimal for max image size
+      const slotH = (usableH - gap - headerH) / 2;
+
+      // New page for receipts
+      pdf.addPage();
+
+      let i = 0;
+      while (i < receiptDataUrls.length){
+        // If not first receipt page, we’re already on a clean page.
+        // For first, we are already on the page created above.
+
+        for (let slot = 0; slot < 2; slot++){
+          if (i >= receiptDataUrls.length) break;
+
+          const r = receiptDataUrls[i];
+          const yTop = marginPt + headerH + (slot === 0 ? 0 : (slotH + gap));
+
+          // Put a small caption
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(10);
+          const caption = `Receipt ${i+1}: ${r.name || "Receipt"}`;
+          pdf.text(caption.length > 90 ? caption.slice(0, 90) + "…" : caption, marginPt, yTop + 12);
+
+          // Image box (below caption)
+          const imgBoxY = yTop + 18;
+          const imgBoxH = slotH - 22;
+          const imgBoxW = usableW;
+
+          const fitted = fitRect(r.w || 1000, r.h || 1000, imgBoxW, imgBoxH);
+          const x = marginPt + (imgBoxW - fitted.w) / 2;
+          const y = imgBoxY + (imgBoxH - fitted.h) / 2;
+
+          // r.dataUrl is already a data URL. Use JPEG for smaller PDFs if possible.
+          // If the data URL is PNG, jsPDF can still embed it, but size may be larger.
+          const isPng = String(r.dataUrl).startsWith("data:image/png");
+          pdf.addImage(r.dataUrl, isPng ? "PNG" : "JPEG", x, y, fitted.w, fitted.h);
+
+          i++;
+        }
+
+        if (i < receiptDataUrls.length){
+          pdf.addPage();
         }
       }
-
-      return html;
     }
 
-    async function preparePrintLayout(){
-      if ((receiptPhotosInput.files || []).length && receiptDataUrls.length === 0){
-        await rebuildReceiptPreviewAndCache();
-      }
-      printArea.innerHTML = buildPrintHTML();
+    async function generatePdfBlob(){
+      const jsPDF = ensureLibsLoaded();
+
+      // Build export DOM
+      exportRoot.innerHTML = buildExportHTML();
+
+      // Wait for logo to load in export root (important for canvas capture)
+      await new Promise((resolve) => setTimeout(resolve, 120));
+
+      // Capture export root into canvas
+      setStatus("Rendering report into PDF…", "");
+      const canvas = await html2canvas(exportRoot, {
+        backgroundColor: "#ffffff",
+        scale: 2,                // sharper text
+        useCORS: true,
+        logging: false,
+        windowWidth: exportRoot.scrollWidth
+      });
+
+      // Create PDF (Letter landscape)
+      const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "letter" });
+      const marginPt = 24;
+
+      // Add report pages
+      await canvasToPagedPdf(pdf, canvas, marginPt);
+
+      // Add receipt pages (2 per page, bigger/legible)
+      setStatus("Adding receipts (2 per page)…", "");
+      await addReceiptPages(pdf, marginPt);
+
+      // Return Blob
+      return pdf.output("blob");
     }
 
-    async function exportViaPrint(){
-      clearStatus();
-      try{
-        if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
-        setStatus("Preparing export, then opening Print…", "");
-        await preparePrintLayout();
-        await new Promise(r => requestAnimationFrame(r));
-        await new Promise(r => setTimeout(r, 120));
-        setStatus("Print opened. Choose “Save as PDF”.", "ok");
-        window.print();
-      } catch(e){
-        setStatus("Export failed, " + String(e), "bad");
-      }
+    function downloadBlob(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
     }
 
-    function buildMailtoLink(subject, body){
+    function buildMailto(subject, body){
       return `mailto:${EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     }
 
-    async function submitFlow(){
+    async function doDownload(){
       clearStatus();
       try{
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
         const outName = sanitizeFilename(filenameEl.value) + ".pdf";
 
-        setStatus("Opening Print, then email draft…", "");
-        await exportViaPrint();
+        const blob = await generatePdfBlob();
+        downloadBlob(blob, outName);
+
+        setStatus("PDF downloaded.", "ok");
+      } catch(e){
+        setStatus("Export failed, " + String(e?.message || e), "bad");
+      }
+    }
+
+    async function doSubmit(){
+      clearStatus();
+      try{
+        if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
+        const outName = sanitizeFilename(filenameEl.value) + ".pdf";
+
+        await doDownload();
 
         const subject = `Expense Report Submission, ${employeeNameEl.value || "Employee"}, ${reportDateEl.value || ""}`;
         const body =
@@ -1031,33 +1100,34 @@ File Name: ${outName}
 Form Version: ${VERSION}
 
 Next step,
-Attach the saved PDF and send.
+Attach the downloaded PDF and send.
 
 Thanks,`;
 
         setTimeout(() => {
-          window.location.href = buildMailtoLink(subject, body);
-          setStatus("Email draft opened. Attach the saved PDF, then send.", "ok");
-        }, 500);
+          window.location.href = buildMailto(subject, body);
+          setStatus("Email draft opened. Attach the downloaded PDF, then send.", "ok");
+        }, 350);
+
       } catch(e){
-        setStatus("Submit failed, " + String(e), "bad");
+        setStatus("Submit failed, " + String(e?.message || e), "bad");
       }
     }
 
-    // UI wiring
+    // Events
     addRowBtn.addEventListener("click", addRow);
     removeLastRowBtn.addEventListener("click", removeLastRow);
 
     receiptPhotosInput.addEventListener("change", async () => {
       clearStatus();
       try{ await rebuildReceiptPreviewAndCache(); }
-      catch(e){ setStatus("Receipt load failed, " + String(e), "bad"); }
+      catch(e){ setStatus("Receipt load failed, " + String(e?.message || e), "bad"); }
     });
 
     clearReceiptsBtn.addEventListener("click", clearReceipts);
 
-    exportBtn.addEventListener("click", exportViaPrint);
-    submitBtn.addEventListener("click", submitFlow);
+    exportBtn.addEventListener("click", doDownload);
+    submitBtn.addEventListener("click", doSubmit);
 
     clearBtn.addEventListener("click", () => {
       clearStatus();
@@ -1069,7 +1139,7 @@ Thanks,`;
       filenameEl.value = buildDefaultFilename();
     });
 
-    // init
+    // Init
     (function init(){
       initRows();
       const today = new Date().toISOString().slice(0,10);
