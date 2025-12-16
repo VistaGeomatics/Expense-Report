@@ -19,7 +19,6 @@
       --ok:#065f46;
       --danger:#b91c1c;
     }
-
     *{ box-sizing:border-box; }
 
     body{
@@ -29,9 +28,7 @@
       color:var(--text-main);
       background:radial-gradient(circle at top, #f4f8fc 0, #e4edf6 40%, #dde6f3 100%);
     }
-
     .page-wrap{ max-width:1400px; margin:0 auto; }
-
     .container{
       background:var(--bg-card);
       border-radius:18px;
@@ -72,7 +69,6 @@
     .vista-bold{ font-weight:700; }
     .geomatics-regular{ font-weight:400; }
     .header-left p{ margin:0; font-size:0.95rem; opacity:0.92; }
-
     .header-logo{
       height:78px;
       width:auto;
@@ -105,7 +101,6 @@
       height:5px;
       background:linear-gradient(90deg, var(--vista-blue-light), var(--vista-blue-dark));
     }
-
     .section-title{
       display:inline-flex; align-items:center; gap:8px;
       font-weight:900;
@@ -117,7 +112,6 @@
       background:linear-gradient(90deg, rgba(22,95,125,0.09), rgba(11,48,69,0.05));
       box-shadow:0 0 0 1px rgba(22,95,125,0.12);
     }
-
     .section-subtext{
       font-size:0.82rem;
       color:var(--text-muted);
@@ -140,7 +134,6 @@
       display:block;
       margin-bottom:4px;
     }
-
     input[type="text"], input[type="date"], select, textarea{
       width:100%;
       min-width:0;
@@ -152,7 +145,6 @@
       font-family:inherit;
       line-height:1.15;
     }
-
     textarea{
       resize:none;
       min-height:44px;
@@ -161,7 +153,6 @@
       word-break:break-word;
       overflow:hidden;
     }
-
     input:focus, select:focus, textarea:focus{
       outline:none;
       border-color:var(--vista-blue-light);
@@ -170,9 +161,8 @@
       transform:translateY(-1px);
     }
 
-    /* Entry table, no sideways scrolling needed */
-    .entries-landscape{ width:100%; overflow:hidden; }
-
+    /* On-screen table */
+    .entries-wrap{ width:100%; overflow:hidden; }
     table{
       width:100%;
       border-collapse:collapse;
@@ -182,7 +172,6 @@
       overflow:hidden;
       table-layout:fixed;
     }
-
     th, td{
       border:1px solid #d7e2f1;
       padding:8px 8px;
@@ -190,7 +179,6 @@
       word-break:break-word;
       overflow:visible;
     }
-
     th{
       background:linear-gradient(90deg, #e6f1fb, #dde9f7);
       text-align:left;
@@ -201,18 +189,11 @@
       white-space:normal;
       line-height:1.15;
     }
-
     tbody tr:nth-child(even){ background:#f7faff; }
     .cell-tight{ padding:6px 7px; }
     td input, td textarea, td select{ width:100%; min-width:0; }
 
-    .money-input, .km-input{
-      text-align:right;
-      font-variant-numeric:tabular-nums;
-    }
-
-    /* Keep date and department readable */
-    .no-wrap{ white-space:nowrap; }
+    .money-input, .km-input{ text-align:right; font-variant-numeric:tabular-nums; }
 
     .row-actions{
       display:flex;
@@ -232,7 +213,6 @@
     @media (max-width: 900px){
       .totals-bar{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
     }
-
     .totals-box{
       border:1px solid var(--border-soft);
       border-radius:12px;
@@ -302,28 +282,7 @@
     .status.ok{ color:var(--ok); }
     .status.bad{ color:var(--danger); }
 
-    .print-block{
-      padding:8px 8px;
-      border:1px solid #d6e2f0;
-      border-radius:8px;
-      background:#fff;
-      min-height:34px;
-      white-space:pre-wrap;
-      word-break:break-word;
-      overflow:visible;
-      line-height:1.22;
-    }
-
-    .footer-version{
-      margin-top:8px;
-      padding:0 4px 4px;
-      text-align:right;
-      font-size:0.78rem;
-      color:var(--text-muted);
-      user-select:none;
-    }
-
-    /* On-screen receipt preview */
+    /* Receipts preview (screen) */
     #receiptPreview{
       margin-top:12px;
       display:grid;
@@ -351,70 +310,161 @@
       border-radius:10px;
     }
 
-    /* Export sandbox, must be on-screen-ish to avoid capture cropping */
-    #exportSandbox{
-      position:fixed;
-      left:0;
-      top:0;
-      width:1px;
-      height:1px;
-      pointer-events:none;
-      opacity:0.01;     /* not 0, avoids blank capture */
-      z-index:-1;
-      overflow:visible;
-      background:transparent;
+    .footer-version{
+      margin-top:8px;
+      padding:0 4px 4px;
+      text-align:right;
+      font-size:0.78rem;
+      color:var(--text-muted);
+      user-select:none;
     }
 
-    /* Export mode tweaks */
-    .export-mode .container{ box-shadow:none; }
-    .export-mode form{ padding:14px 14px 10px; }
-    .export-mode .section{ box-shadow:none; }
-    .export-mode .header-logo{ height:58px; }
-    .export-mode .header-left h1{ font-size:1.15rem; }
-    .export-mode .section-title{ font-size:0.90rem; }
-    .export-mode table{ font-size:0.70rem; }
-    .export-mode th{ font-size:0.60rem; }
-    .export-mode th, .export-mode td{ padding:6px 6px; }
-    .export-mode .no-wrap{ white-space:nowrap; }
+    /* ====== PRINT / PDF LAYOUT ====== */
+    #printArea{ display:none; }
 
-    /* Receipts in export, 2 per page, stacked */
-    .export-receipts{
-      page-break-before:always;
-      break-before:page;
-      margin-top:10px;
+    @media print{
+      @page { size: letter landscape; margin: 0.4in; }
+      body{ background:#fff; padding:0; }
+      .page-wrap{ max-width:none; }
+      .container{ box-shadow:none; border-radius:0; }
+      #appArea{ display:none !important; }
+      #printArea{ display:block !important; }
+
+      /* avoid browser clipping */
+      *{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
-    .receipt-sheet{
-      page-break-before:always;
-      break-before:page;
-      padding:0;
+
+    /* Print report page */
+    .p-page{ page-break-after: always; }
+    .p-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      border:1px solid #d6e2f0;
+      border-radius:12px;
+      background:linear-gradient(120deg, rgba(42,127,163,0.18), rgba(22,95,125,0.10));
+      margin-bottom:10px;
+    }
+    .p-title{
+      font-family:"Montserrat", sans-serif;
+      font-weight:700;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      font-size:16px;
       margin:0;
+      color:#0b3045;
     }
-    .receipt-slot{
+    .p-subtitle{ margin:2px 0 0 0; color:#374151; font-size:12px; font-weight:700; }
+    .p-logo{ height:44px; width:auto; }
+
+    .p-meta{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .p-box{
       border:1px solid #d6e2f0;
       border-radius:12px;
       padding:10px;
-      margin:0 0 12px 0;
       background:#fff;
     }
-    .receipt-slot-title{
-      font-size:0.85rem;
+    .p-label{ font-size:11px; font-weight:900; color:#4b5563; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
+    .p-value{ font-size:13px; font-weight:800; color:#111827; word-break:break-word; }
+
+    .p-note{ font-size:11px; color:#6b7280; margin:6px 0 0 0; font-weight:700; }
+
+    .p-table{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      font-size:11px;
+    }
+    .p-table th, .p-table td{
+      border:1px solid #d7e2f1;
+      padding:6px 6px;
+      vertical-align:top;
+      word-break:break-word;
+    }
+    .p-table th{
+      background:linear-gradient(90deg, #e6f1fb, #dde9f7);
+      color:#374151;
+      text-transform:uppercase;
+      letter-spacing:0.04em;
+      font-size:10px;
+      white-space:nowrap; /* keep headers readable */
+    }
+
+    /* IMPORTANT: ensure Date + Dept never cut off */
+    .p-nowrap{ white-space:nowrap; word-break:normal; overflow-wrap:normal; }
+
+    .p-totals{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+    }
+    .p-totalbox{
+      border:1px solid #d6e2f0;
+      border-radius:12px;
+      padding:10px;
+      background:#fff;
+    }
+    .p-totalbox .k{ font-size:10px; font-weight:900; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; }
+    .p-totalbox .v{ margin-top:6px; font-size:13px; font-weight:900; color:#0b3045; }
+
+    .p-footer{
+      margin-top:8px;
+      text-align:right;
+      font-size:10px;
+      color:#6b7280;
+      font-weight:800;
+    }
+
+    /* Print receipts: 2 per page */
+    .p-receipts-page{
+      page-break-after: always;
+    }
+    .p-receipts-grid{
+      display:grid;
+      grid-template-rows: 1fr 1fr;
+      gap:10px;
+    }
+    .p-receipt{
+      border:1px solid #d6e2f0;
+      border-radius:12px;
+      padding:10px;
+      background:#fff;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: 3.7in; /* half of landscape letter usable height */
+    }
+    .p-receipt-title{
+      font-size:11px;
       font-weight:900;
       color:#374151;
       margin:0 0 8px 0;
       word-break:break-word;
     }
-    .receipt-slot-img{
+    .p-receipt-img{
       width:100%;
       height:auto;
-      display:block;
       border-radius:10px;
+      border:1px solid #e5eef9;
+      object-fit:contain;
+      flex:1 1 auto;
+      max-height: 3.1in;
     }
   </style>
 </head>
 
 <body>
   <div class="page-wrap">
-    <div class="container" id="reportArea">
+    <!-- APP (screen) -->
+    <div class="container" id="appArea">
       <div class="header-bar">
         <div class="header-left">
           <h1><span class="vista-bold">VISTA</span><span class="geomatics-regular">GEOMATICS</span></h1>
@@ -444,21 +494,21 @@
         <div class="section">
           <div class="section-title">Expense Entries</div>
           <p class="section-subtext">
-            Starts with 3 rows, add more as needed. Descriptions can be long and wrap in the exported PDF.
+            Starts with 3 rows, add more as needed. Descriptions can be long.
           </p>
 
-          <div class="entries-landscape">
+          <div class="entries-wrap">
             <table id="expenseTable">
               <thead>
                 <tr>
-                  <th class="no-wrap" style="width:10%;">Date</th>
-                  <th style="width:13%;">Vendor</th>
-                  <th style="width:33%;">Item Description</th>
-                  <th class="no-wrap" style="width:9%;">Subtotal</th>
-                  <th class="no-wrap" style="width:8%;">GST</th>
-                  <th class="no-wrap" style="width:9%;">Total</th>
-                  <th class="no-wrap" style="width:10%;">Department</th>
-                  <th class="no-wrap" style="width:8%;">Personal KM</th>
+                  <th style="width:11%;">Date</th>
+                  <th style="width:14%;">Vendor</th>
+                  <th style="width:29%;">Item Description</th>
+                  <th style="width:10%;">Subtotal</th>
+                  <th style="width:8%;">GST</th>
+                  <th style="width:10%;">Total</th>
+                  <th style="width:10%;">Department</th>
+                  <th style="width:8%;">Personal KM</th>
                 </tr>
               </thead>
               <tbody id="expenseTbody"></tbody>
@@ -481,7 +531,7 @@
         <div class="section">
           <div class="section-title">Receipts</div>
           <p class="section-subtext">
-            Photos only. Export will add receipts after the report, 2 per page.
+            Photos only. Export will include receipts after the report, 2 per page.
           </p>
 
           <div class="grid-2">
@@ -516,7 +566,8 @@
           </div>
 
           <p class="section-subtext" style="margin-top:10px;">
-            Submit exports the PDF, then opens your email app to timesheets@vistageomatics.com. Attach the exported PDF manually, then send.
+            Export opens your device Print dialog. Choose “Save as PDF”.
+            Submit opens an email draft to timesheets@vistageomatics.com, attach the saved PDF, then send.
           </p>
 
           <div class="status" id="statusBox"></div>
@@ -525,14 +576,13 @@
         <div class="footer-version" id="versionFooter"></div>
       </form>
     </div>
+
+    <!-- PRINT (PDF) -->
+    <div id="printArea"></div>
   </div>
 
-  <div id="exportSandbox" aria-hidden="true"></div>
-
-  <script src="html2pdf.bundle.min.js"></script>
-
   <script>
-    const VERSION = "6.0";
+    const VERSION = "1";
     const EMAIL_TO = "timesheets@vistageomatics.com";
     const DEFAULT_ROWS = 3;
 
@@ -560,11 +610,10 @@
 
     const statusBox = document.getElementById("statusBox");
     const versionFooter = document.getElementById("versionFooter");
-    const exportSandbox = document.getElementById("exportSandbox");
+    const printArea = document.getElementById("printArea");
 
     versionFooter.textContent = "Version " + VERSION;
 
-    // Cached receipt Data URLs for reliable export
     let receiptDataUrls = []; // [{name, dataUrl}]
 
     function setStatus(msg, kind){
@@ -596,7 +645,6 @@
       const date = reportDateEl.value ? reportDateEl.value : new Date().toISOString().slice(0,10);
       return `Expense Report, ${name}, ${date}`;
     }
-
     function autoGrow(el){
       if (!el) return;
       el.style.height = "auto";
@@ -612,7 +660,6 @@
         <option value="300">Office 300</option>
         <option value="400">Construction 400</option>
       `;
-      sel.classList.add("no-wrap");
       return sel;
     }
 
@@ -625,7 +672,6 @@
       input.className = "money-input";
       return input;
     }
-
     function kmInput(){
       const input = document.createElement("input");
       input.type = "text";
@@ -640,13 +686,12 @@
       const tr = document.createElement("tr");
 
       const tdDate = document.createElement("td"); tdDate.className="cell-tight";
-      const date = document.createElement("input");
-      date.type="date";
-      date.classList.add("no-wrap");
+      const date = document.createElement("input"); date.type="date";
       tdDate.appendChild(date);
 
       const tdVendor = document.createElement("td"); tdVendor.className="cell-tight";
-      const vendor = document.createElement("input"); vendor.type="text"; vendor.placeholder="Vendor"; tdVendor.appendChild(vendor);
+      const vendor = document.createElement("input"); vendor.type="text"; vendor.placeholder="Vendor";
+      tdVendor.appendChild(vendor);
 
       const tdDesc = document.createElement("td"); tdDesc.className="cell-tight";
       const desc = document.createElement("textarea");
@@ -661,7 +706,8 @@
       const gst = moneyInput(); tdGst.appendChild(gst);
 
       const tdTotal = document.createElement("td"); tdTotal.className="cell-tight";
-      const total = moneyInput(); total.readOnly=true; total.tabIndex=-1; tdTotal.appendChild(total);
+      const total = moneyInput(); total.readOnly = true; total.tabIndex = -1;
+      tdTotal.appendChild(total);
 
       const tdDept = document.createElement("td"); tdDept.className="cell-tight";
       const dept = deptSelect(); tdDept.appendChild(dept);
@@ -700,12 +746,10 @@
         const gst = tr.querySelector("td:nth-child(5) input");
         const tot = tr.querySelector("td:nth-child(6) input");
         const km  = tr.querySelector("td:nth-child(8) input");
-
         const s = parseMoney(sub?.value);
         const g = parseMoney(gst?.value);
         const t = parseMoney(tot?.value);
         const k = parseMoney(km?.value);
-
         subSum += s; gstSum += g; grand += t; kmSum += k;
       });
 
@@ -718,15 +762,6 @@
     function initRows(){
       tbody.innerHTML = "";
       for (let i=0; i<DEFAULT_ROWS; i++) addRow();
-    }
-
-    function buildPrintBlock(value, minH, noWrap){
-      const block = document.createElement("div");
-      block.className = "print-block";
-      block.textContent = value || "";
-      if (minH) block.style.minHeight = minH;
-      if (noWrap) block.style.whiteSpace = "nowrap";
-      return block;
     }
 
     async function fileToDataUrl(file){
@@ -768,7 +803,7 @@
         receiptPreview.appendChild(card);
       }
 
-      setStatus("Receipts ready. Export will add them after the report, 2 per page.", "ok");
+      setStatus("Receipts ready. Export will include them, 2 per page.", "ok");
     }
 
     function clearReceipts(){
@@ -779,169 +814,179 @@
       setStatus("Receipts cleared.", "ok");
     }
 
-    function makeReceiptSlot(num, receipt){
-      const slot = document.createElement("div");
-      slot.className = "receipt-slot";
-
-      const title = document.createElement("div");
-      title.className = "receipt-slot-title";
-      title.textContent = `Receipt ${num}, ${receipt.name}`;
-      slot.appendChild(title);
-
-      const img = document.createElement("img");
-      img.className = "receipt-slot-img";
-      img.src = receipt.dataUrl;
-      slot.appendChild(img);
-
-      return slot;
-    }
-
-    function cloneForPdf(){
-      const src = document.getElementById("reportArea").cloneNode(true);
-
-      // Wrap in export-mode container
-      const exportWrap = document.createElement("div");
-      exportWrap.className = "export-mode";
-      exportWrap.appendChild(src);
-
-      // Set a stable width for Letter landscape content (minus margins)
-      // Letter landscape is 11in wide, we use 10.4in for safe margins.
-      src.style.width = "10.4in";
-      src.style.maxWidth = "10.4in";
-      src.style.margin = "0";
-      src.style.boxShadow = "none";
-
-      // Replace interactive fields with print blocks
-      src.querySelectorAll("input, select, textarea").forEach(el => {
-        if (el.tagName === "SELECT"){
-          const opt = el.options[el.selectedIndex];
-          el.replaceWith(buildPrintBlock(opt ? opt.textContent : "", "34px", true));
-        } else if (el.tagName === "TEXTAREA"){
-          el.replaceWith(buildPrintBlock(el.value || "", "56px", false));
-        } else {
-          const isDate = (el.getAttribute("type") || "").toLowerCase() === "date";
-          el.replaceWith(buildPrintBlock(el.value || "", "34px", isDate));
-        }
+    function getRowData(){
+      const rows = [];
+      Array.from(tbody.querySelectorAll("tr")).forEach(tr => {
+        const date = tr.querySelector("td:nth-child(1) input")?.value || "";
+        const vendor = tr.querySelector("td:nth-child(2) input")?.value || "";
+        const desc = tr.querySelector("td:nth-child(3) textarea")?.value || "";
+        const sub = tr.querySelector("td:nth-child(4) input")?.value || "";
+        const gst = tr.querySelector("td:nth-child(5) input")?.value || "";
+        const total = tr.querySelector("td:nth-child(6) input")?.value || "";
+        const deptSel = tr.querySelector("td:nth-child(7) select");
+        const deptText = deptSel ? (deptSel.options[deptSel.selectedIndex]?.textContent || "") : "";
+        const km = tr.querySelector("td:nth-child(8) input")?.value || "";
+        rows.push({ date, vendor, desc, sub, gst, total, deptText, km });
       });
+      return rows;
+    }
 
-      // Remove buttons and status from export
-      src.querySelectorAll("button").forEach(b => b.remove());
-      const status = src.querySelector("#statusBox");
-      if (status) status.remove();
+    function buildPrintHTML(){
+      const employee = (employeeNameEl.value || "").trim();
+      const reportDate = (reportDateEl.value || "").trim();
+      const fileName = sanitizeFilename(filenameEl.value || buildDefaultFilename());
 
-      // Clear on-screen preview in report portion
-      const preview = src.querySelector("#receiptPreview");
-      if (preview) preview.innerHTML = "";
+      const rows = getRowData();
+      const subtotalTotal = subtotalSumEl.textContent;
+      const gstTotal = gstSumEl.textContent;
+      const grandTotal = grandSumEl.textContent;
+      const kmTotal = kmSumEl.textContent;
 
-      // Version footer
-      const vf = src.querySelector("#versionFooter");
-      if (vf) vf.textContent = "Version " + VERSION;
+      const reportRowsHTML = rows.map(r => `
+        <tr>
+          <td class="p-nowrap">${escapeHtml(r.date)}</td>
+          <td>${escapeHtml(r.vendor)}</td>
+          <td>${escapeHtml(r.desc)}</td>
+          <td class="p-nowrap">${escapeHtml(r.sub)}</td>
+          <td class="p-nowrap">${escapeHtml(r.gst)}</td>
+          <td class="p-nowrap">${escapeHtml(r.total)}</td>
+          <td class="p-nowrap">${escapeHtml(r.deptText)}</td>
+          <td class="p-nowrap">${escapeHtml(r.km)}</td>
+        </tr>
+      `).join("");
 
-      // Append receipts, 2 per page, stacked
+      // report page
+      let html = `
+        <div class="p-page">
+          <div class="p-header">
+            <div>
+              <p class="p-title">VISTA GEOMATICS</p>
+              <p class="p-subtitle">Employee Out of Pocket Expense Report</p>
+            </div>
+            <img class="p-logo" src="vista-geomatics.png" alt="Vista Geomatics" />
+          </div>
+
+          <div class="p-meta">
+            <div class="p-box">
+              <div class="p-label">Name</div>
+              <div class="p-value">${escapeHtml(employee)}</div>
+            </div>
+            <div class="p-box">
+              <div class="p-label">Report Date</div>
+              <div class="p-value p-nowrap">${escapeHtml(reportDate)}</div>
+            </div>
+          </div>
+
+          <div class="p-box" style="margin-bottom:10px;">
+            <div class="p-label">Department Codes</div>
+            <div class="p-value" style="font-size:12px;">
+              Municipal 100, Oil and Gas 200, Office 300, Construction 400
+            </div>
+            <p class="p-note">File name, ${escapeHtml(fileName)}.pdf</p>
+          </div>
+
+          <table class="p-table">
+            <thead>
+              <tr>
+                <th style="width:10%;">Date</th>
+                <th style="width:14%;">Vendor</th>
+                <th style="width:30%;">Item Description</th>
+                <th style="width:9%;">Subtotal</th>
+                <th style="width:7%;">GST</th>
+                <th style="width:9%;">Total</th>
+                <th style="width:13%;">Department</th>
+                <th style="width:8%;">Personal KM</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${reportRowsHTML || `<tr><td colspan="8" style="color:#6b7280; font-weight:800;">No expense entries.</td></tr>`}
+            </tbody>
+          </table>
+
+          <div class="p-totals">
+            <div class="p-totalbox"><div class="k">Subtotal Total</div><div class="v">${escapeHtml(subtotalTotal)}</div></div>
+            <div class="p-totalbox"><div class="k">GST Total</div><div class="v">${escapeHtml(gstTotal)}</div></div>
+            <div class="p-totalbox"><div class="k">Grand Total</div><div class="v">${escapeHtml(grandTotal)}</div></div>
+            <div class="p-totalbox"><div class="k">Personal KM Total</div><div class="v">${escapeHtml(kmTotal)}</div></div>
+          </div>
+
+          <div class="p-footer">Version ${VERSION}</div>
+        </div>
+      `;
+
+      // receipt pages (2 per page)
       if (receiptDataUrls.length){
-        const wrap = document.createElement("div");
-        wrap.className = "export-receipts";
-
         for (let i = 0; i < receiptDataUrls.length; i += 2){
-          const sheet = document.createElement("div");
-          sheet.className = "receipt-sheet";
+          const a = receiptDataUrls[i];
+          const b = receiptDataUrls[i + 1];
 
-          sheet.appendChild(makeReceiptSlot(i + 1, receiptDataUrls[i]));
-          if (receiptDataUrls[i + 1]) sheet.appendChild(makeReceiptSlot(i + 2, receiptDataUrls[i + 1]));
+          html += `
+            <div class="p-receipts-page">
+              <div class="p-header" style="margin-bottom:10px;">
+                <div>
+                  <p class="p-title">Receipts</p>
+                  <p class="p-subtitle">Two per page</p>
+                </div>
+                <img class="p-logo" src="vista-geomatics.png" alt="Vista Geomatics" />
+              </div>
 
-          wrap.appendChild(sheet);
+              <div class="p-receipts-grid">
+                ${receiptBlockHTML(i + 1, a)}
+                ${b ? receiptBlockHTML(i + 2, b) : `<div class="p-receipt" style="opacity:0.35;"><p class="p-receipt-title">Blank</p></div>`}
+              </div>
+
+              <div class="p-footer">Version ${VERSION}</div>
+            </div>
+          `;
         }
-
-        src.appendChild(wrap);
       }
 
-      return exportWrap;
+      return html;
     }
 
-    async function waitForImages(root){
-      const imgs = Array.from(root.querySelectorAll("img"));
-      await Promise.all(imgs.map(async img => {
-        try{
-          if (img.complete && img.naturalWidth > 0) return;
-          if (img.decode) await img.decode();
-          else await new Promise(res => { img.onload = res; img.onerror = res; });
-        } catch {}
-      }));
+    function receiptBlockHTML(num, receipt){
+      return `
+        <div class="p-receipt">
+          <p class="p-receipt-title">Receipt ${num}, ${escapeHtml(receipt.name || "Receipt")}</p>
+          <img class="p-receipt-img" src="${receipt.dataUrl}" alt="Receipt ${num}" />
+        </div>
+      `;
     }
 
-    async function exportReportPdfBlobLetterLandscape(){
-      if (typeof window.html2pdf === "undefined") {
-        throw new Error("html2pdf.bundle.min.js did not load");
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    async function preparePrintLayout(){
+      // Ensure receipts cached (data URLs)
+      if ((receiptPhotosInput.files || []).length && receiptDataUrls.length === 0){
+        await rebuildReceiptPreviewAndCache();
       }
-
-      exportSandbox.innerHTML = "";
-      const clone = cloneForPdf();
-      exportSandbox.appendChild(clone);
-
-      await waitForImages(exportSandbox);
-      await new Promise(requestAnimationFrame);
-      await new Promise(requestAnimationFrame);
-
-      // Measure actual size to prevent cropping
-      const widthPx  = Math.ceil(clone.scrollWidth);
-      const heightPx = Math.ceil(clone.scrollHeight);
-
-      const opt = {
-        margin: 0.3,
-        image: { type:"jpeg", quality:0.96 },
-        html2canvas: {
-          scale: 2,
-          backgroundColor: "#ffffff",
-          useCORS: true,
-          logging: false,
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: widthPx,
-          windowHeight: heightPx,
-          width: widthPx,
-          height: heightPx
-        },
-        jsPDF: { unit:"in", format:"letter", orientation:"landscape" },
-        pagebreak: { mode:["css","legacy"] }
-      };
-
-      const worker = window.html2pdf().set(opt).from(clone).toPdf();
-      const pdf = await worker.get("pdf");
-      const blob = pdf.output("blob");
-
-      exportSandbox.innerHTML = "";
-      return blob;
+      // Build print HTML (static, never clipped)
+      printArea.innerHTML = buildPrintHTML();
     }
 
-    async function exportPdfToDownload(){
+    async function exportViaPrint(){
       clearStatus();
       try{
         if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
 
-        // Ensure receipt cache exists if files selected
-        if ((receiptPhotosInput.files || []).length && receiptDataUrls.length === 0){
-          await rebuildReceiptPreviewAndCache();
-        }
+        setStatus("Preparing export, then opening Print dialog…", "");
+        await preparePrintLayout();
 
-        setStatus("Exporting PDF, Letter size, Landscape…", "");
-        const blob = await exportReportPdfBlobLetterLandscape();
+        // Let layout render before printing
+        await new Promise(r => requestAnimationFrame(() => r()));
+        await new Promise(r => setTimeout(r, 50));
 
-        const outName = sanitizeFilename(filenameEl.value) + ".pdf";
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = outName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        setTimeout(() => URL.revokeObjectURL(url), 2000);
-        setStatus("PDF exported.", "ok");
-        return outName;
+        setStatus("Print dialog opened. Choose “Save as PDF”.", "ok");
+        window.print();
       } catch(e){
         setStatus("Export failed, " + String(e), "bad");
-        throw e;
       }
     }
 
@@ -949,11 +994,14 @@
       return `mailto:${EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     }
 
-    async function submitSelfContained(){
+    async function submitFlow(){
       clearStatus();
       try{
-        setStatus("Exporting PDF, then opening email draft…", "");
-        const outName = await exportPdfToDownload();
+        if (!filenameEl.value.trim()) filenameEl.value = buildDefaultFilename();
+        const outName = sanitizeFilename(filenameEl.value) + ".pdf";
+
+        setStatus("Opening Print dialog, then email draft…", "");
+        await exportViaPrint();
 
         const subject = `Expense Report Submission, ${employeeNameEl.value || "Employee"}, ${reportDateEl.value || ""}`;
         const body =
@@ -967,12 +1015,16 @@ File Name: ${outName}
 Form Version: ${VERSION}
 
 Next step,
-Attach the exported PDF and send.
+Attach the saved PDF and send.
 
 Thanks,`;
 
-        window.location.href = buildMailtoLink(subject, body);
-        setStatus("Email draft opened. Attach the exported PDF, then send.", "ok");
+        // Small delay so iPad doesn't ignore mailto immediately after print
+        setTimeout(() => {
+          window.location.href = buildMailtoLink(subject, body);
+          setStatus("Email draft opened. Attach the saved PDF, then send.", "ok");
+        }, 400);
+
       } catch(e){
         setStatus("Submit failed, " + String(e), "bad");
       }
@@ -993,8 +1045,8 @@ Thanks,`;
 
     clearReceiptsBtn.addEventListener("click", clearReceipts);
 
-    exportBtn.addEventListener("click", exportPdfToDownload);
-    submitBtn.addEventListener("click", submitSelfContained);
+    exportBtn.addEventListener("click", exportViaPrint);
+    submitBtn.addEventListener("click", submitFlow);
 
     clearBtn.addEventListener("click", () => {
       clearStatus();
@@ -1014,12 +1066,6 @@ Thanks,`;
       filenameEl.value = buildDefaultFilename();
       receiptCountText.textContent = "No receipts selected.";
       receiptPreview.innerHTML = "";
-
-      setTimeout(() => {
-        if (typeof window.html2pdf === "undefined") {
-          setStatus("Missing html2pdf.bundle.min.js, place it beside index.html.", "bad");
-        }
-      }, 350);
     })();
   </script>
 </body>
