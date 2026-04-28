@@ -509,8 +509,8 @@
 
           <div class="grid-2">
             <div>
-              <label for="receiptPhotos">Receipt photos, take photo or upload</label>
-              <input type="file" id="receiptPhotos" accept="image/*" multiple capture="environment" />
+              <label for="receiptPhotos">Receipt photos or PDFs — take photo, upload image, or upload PDF</label>
+              <input type="file" id="receiptPhotos" accept="image/*,application/pdf" multiple capture="environment" />
             </div>
             <div>
               <label>&nbsp;</label>
@@ -556,6 +556,13 @@
 
   <script src="./html2canvas.min.js"></script>
   <script src="./jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+  </script>
 
   <script>
     // Version bumped for this change (receipt image normalization to prevent black/white exports)
@@ -835,6 +842,31 @@
       const jpegDataUrl = canvas.toDataURL("image/jpeg", 0.92);
       return { jpegDataUrl, w: outW, h: outH };
     }
+
+    // Renders each page of a PDF file into JPEG data URLs
+    async function pdfFileToJpegPages(file){
+      if (!window.pdfjsLib) throw new Error("PDF.js not loaded.");
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pages = [];
+      for (let p = 1; p <= pdfDoc.numPages; p++){
+        const page = await pdfDoc.getPage(p);
+        const viewport = page.getViewport({ scale: 2.0 }); // 2× for clarity
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        pages.push({
+          jpegDataUrl: canvas.toDataURL("image/jpeg", 0.92),
+          w: canvas.width,
+          h: canvas.height
+        });
+      }
+      return pages;
+    }
     // ------------------------------------------------------------
 
     async function rebuildReceiptPreviewAndCache(){
@@ -842,14 +874,37 @@
       receiptDataUrls = [];
 
       const files = Array.from(receiptPhotosInput.files || []);
-      receiptCountText.textContent = files.length ? `${files.length} receipt photo(s) selected.` : "No receipts selected.";
+      receiptCountText.textContent = files.length ? `${files.length} receipt file(s) selected.` : "No receipts selected.";
       if (!files.length) return;
 
-      setStatus("Loading receipt photos…", "");
+      setStatus("Loading receipts…", "");
 
       for (const f of files){
+        const isPdf = f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
         try{
-          const normalized = await normalizeReceiptToJpeg(f);
+          if (isPdf){
+            // Render each PDF page as a separate receipt entry
+            const pages = await pdfFileToJpegPages(f);
+            pages.forEach((pg, idx) => {
+              const label = pages.length > 1
+                ? `${f.name} — page ${idx + 1}`
+                : f.name;
+              receiptDataUrls.push({ name: label, dataUrl: pg.jpegDataUrl, w: pg.w, h: pg.h });
+
+              const card = document.createElement("div");
+              card.className = "receipt-card";
+              const cap = document.createElement("div");
+              cap.className = "receipt-caption";
+              cap.textContent = label;
+              card.appendChild(cap);
+              const img = document.createElement("img");
+              img.className = "receipt-img";
+              img.src = pg.jpegDataUrl;
+              card.appendChild(img);
+              receiptPreview.appendChild(card);
+            });
+          } else {
+            const normalized = await normalizeReceiptToJpeg(f);
 
           receiptDataUrls.push({
             name: f.name || "Receipt photo",
@@ -872,10 +927,11 @@
           card.appendChild(img);
 
           receiptPreview.appendChild(card);
+          } // end else (image)
         } catch(e){
           setStatus(
             `One receipt could not be processed: ${f.name || "unknown"}.\n` +
-            `If this is HEIC/HEIF, change iPhone Camera to "Most Compatible" or retake as a screenshot/photo.`,
+            `Images: if HEIC/HEIF, change iPhone Camera to "Most Compatible". PDFs: ensure the file is not password-protected.`,
             "bad"
           );
         }
